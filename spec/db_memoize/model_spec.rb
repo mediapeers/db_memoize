@@ -68,20 +68,40 @@ describe DbMemoize::Model do
     end
 
     context 'dirty record' do
+      let(:instance) do
+        rec = create(:bicycle)
+        rec.name = 'dirrrrty'
+        rec
+      end
+
       it 'should not create a cache record' do
         expect {
-          instance.name = 'dirrrrty'
           instance.gears_count
         }.not_to change { DbMemoize::Value.count }
+      end
+
+      it 'should call original method' do
+        expect(instance).to receive(:gears_count_without_memoize).exactly(2).times.and_call_original
+        instance.gears_count
+        instance.gears_count
       end
     end
 
     context 'unsaved record' do
+      let(:instance) do
+        build(:bicycle)
+      end
+
       it 'should not create a cache record' do
         expect {
-          record = build(:bicycle)
-          record.gears_count
+          instance.gears_count
         }.not_to change { DbMemoize::Value.count }
+      end
+
+      it 'should call original method (every time)' do
+        expect(instance).to receive(:gears_count_without_memoize).exactly(2).times.and_call_original
+        instance.gears_count
+        instance.gears_count
       end
     end
   end

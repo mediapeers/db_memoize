@@ -3,15 +3,16 @@ module DbMemoize
     extend ActiveSupport::Concern
 
     def memoized_value(method_name, args)
-      args_hash = ::Digest::MD5.hexdigest(Marshal.dump(args))
-      cached_value = find_memoized_value(method_name, args_hash)
+      if changed? || !persisted?
+        return send("#{method_name}_without_memoize", *args)
+      end
+
+      args_hash     = ::Digest::MD5.hexdigest(Marshal.dump(args))
+      cached_value  = find_memoized_value(method_name, args_hash)
 
       unless cached_value
         cached_value = send("#{method_name}_without_memoize", *args)
-
-        if !changed? && persisted?
-          create_memoized_value(method_name, args_hash, cached_value)
-        end
+        create_memoized_value(method_name, args_hash, cached_value)
       end
 
       cached_value
