@@ -22,8 +22,11 @@ end
 
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
+  config.run_all_when_everything_filtered = true
+  config.filter_run focus: (ENV['CI'] != 'true')
 
   config.before(:suite) do
+    FactoryGirl.lint
     FactoryGirl.find_definitions
   end
 
