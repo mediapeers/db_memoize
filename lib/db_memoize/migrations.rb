@@ -8,7 +8,7 @@ module DbMemoize
           t.string :method_name
           t.string :arguments_hash
           t.string :custom_key
-          t.text :value
+          t.binary :value
           t.datetime :created_at
         end
 
