@@ -30,7 +30,7 @@ describe DbMemoize::Model do
     end
 
     it 'calls original method only once' do
-      expect(instance).to receive(:gears_count_without_memoize).and_return(5).once
+      expect(instance).to receive(:gears_count_without_memoize).once.and_call_original
 
       instance.gears_count
       instance.gears_count # from cache
@@ -52,6 +52,18 @@ describe DbMemoize::Model do
 
         expect(instance.shift(1)).to eq('1 shifted!')
         expect(instance.shift(2)).to eq('2 shifted!')
+      end
+    end
+
+    context 'custom key' do
+      it 'calls original method again if custom key has changed' do
+        expect(instance).to receive(:gears_count_without_memoize).exactly(2).times.and_call_original
+
+        DbMemoize.default_custom_key = 'v1'
+        instance.gears_count
+
+        DbMemoize.default_custom_key = 'v2'
+        instance.gears_count
       end
     end
   end
