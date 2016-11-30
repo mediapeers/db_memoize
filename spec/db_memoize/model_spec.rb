@@ -66,6 +66,24 @@ describe DbMemoize::Model do
         instance.gears_count
       end
     end
+
+    context 'dirty record' do
+      it 'should not create a cache record' do
+        expect {
+          instance.name = 'dirrrrty'
+          instance.gears_count
+        }.not_to change { DbMemoize::Value.count }
+      end
+    end
+
+    context 'unsaved record' do
+      it 'should not create a cache record' do
+        expect {
+          record = build(:bicycle)
+          record.gears_count
+        }.not_to change { DbMemoize::Value.count }
+      end
+    end
   end
 
   context 'cache wiping' do

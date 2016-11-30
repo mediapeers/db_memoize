@@ -8,7 +8,10 @@ module DbMemoize
 
       unless cached_value
         cached_value = send("#{method_name}_without_memoize", *args)
-        create_memoized_value(method_name, args_hash, cached_value)
+
+        if !changed? && persisted?
+          create_memoized_value(method_name, args_hash, cached_value)
+        end
       end
 
       cached_value
