@@ -54,14 +54,14 @@ module DbMemoize
         return if records_or_ids.empty?
 
         if records_or_ids.first.is_a?(ActiveRecord::Base)
-          klass_name = records_or_ids.first.class.name
-          ids        = records_or_ids.map(&:id)
+          types = records_or_ids.map { |r| r.class.name }.uniq
+          ids   = records_or_ids.map(&:id)
         else
-          klass_name = name
-          ids        = records_or_ids
+          types = name
+          ids   = records_or_ids
         end
 
-        DbMemoize::Value.where(entity_type: klass_name, entity_id: ids).delete_all
+        DbMemoize::Value.where(entity_type: types, entity_id: ids).delete_all
       end
 
       private
