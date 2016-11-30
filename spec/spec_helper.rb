@@ -6,6 +6,7 @@ require 'pry'
 require 'awesome_print'
 require 'database_cleaner'
 require 'factory_girl'
+require './spec/support/bicycle'
 
 ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:"
 
