@@ -67,15 +67,15 @@ module DbMemoize
         return if records_or_ids.empty?
 
         if records_or_ids.first.is_a?(ActiveRecord::Base)
-          types = records_or_ids.map { |r| r.class.name }.uniq
-          ids   = records_or_ids.map(&:id)
+          ids  = records_or_ids.map(&:id)
+          type = records_or_ids.first.class.base_class.name
         else
-          types = name
-          ids   = records_or_ids
+          ids  = records_or_ids
+          type = base_class.name
         end
 
         conditions = {
-          entity_type: types,
+          entity_type: type,
           entity_id: ids
         }
         conditions[:method_name] = method_name unless method_name == :all
