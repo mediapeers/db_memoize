@@ -61,29 +61,47 @@ describe DbMemoize::Model do
       @rec1 = create(:bicycle)
       @rec2 = create(:bicycle)
       @rec3 = create(:bicycle)
-      @rec1.gears_count
-      @rec2.gears_count
-      @rec3.gears_count
+      [@rec1, @rec2, @rec3].each do |r|
+        r.gears_count
+        r.shift(1)
+        r.facilities
+      end
 
-      expect(DbMemoize::Value.count).to eq(3)
+      expect(DbMemoize::Value.count).to eq(9)
     end
 
     describe '.unmemoize' do
       it 'wipes cached values for given records' do
         expect { Bicycle.unmemoize([@rec1, @rec2]) }
-          .to change { DbMemoize::Value.count }.by(-2)
+          .to change { DbMemoize::Value.count }.by(-6)
       end
 
       it 'wipes cached values for given ids' do
         expect { Bicycle.unmemoize([@rec1.id, @rec3.id]) }
-          .to change { DbMemoize::Value.count }.by(-2)
+          .to change { DbMemoize::Value.count }.by(-6)
       end
     end
 
     describe '#unmemoize' do
-      it 'wipes cached values for given records' do
+      it 'wipes cached values for given record' do
         expect { @rec1.unmemoize }
-          .to change { DbMemoize::Value.count }.by(-1)
+          .to change { DbMemoize::Value.count }.by(-3)
+      end
+    end
+
+    context 'specific method only' do
+      describe '.unmemoize' do
+        it 'wipes cached values for given records' do
+          expect { Bicycle.unmemoize([@rec1, @rec2], :gears_count) }
+            .to change { DbMemoize::Value.count }.by(-2)
+        end
+      end
+
+      describe '#unmemoize' do
+        it 'wipes cached values for given record' do
+          expect { @rec1.unmemoize(:facilities) }
+            .to change { DbMemoize::Value.count }.by(-1)
+        end
       end
     end
   end

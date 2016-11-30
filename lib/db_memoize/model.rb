@@ -14,8 +14,8 @@ module DbMemoize
       cached_value
     end
 
-    def unmemoize
-      self.class.unmemoize(self)
+    def unmemoize(method_name = :all)
+      self.class.unmemoize(self, method_name)
     end
 
     def memoized_custom_key
@@ -49,7 +49,7 @@ module DbMemoize
         create_memoized_values_association
       end
 
-      def unmemoize(records_or_ids)
+      def unmemoize(records_or_ids, method_name = :all)
         records_or_ids = Array(records_or_ids)
         return if records_or_ids.empty?
 
@@ -61,7 +61,13 @@ module DbMemoize
           ids   = records_or_ids
         end
 
-        DbMemoize::Value.where(entity_type: types, entity_id: ids).delete_all
+        conditions = {
+          entity_type: types,
+          entity_id: ids
+        }
+        conditions[:method_name] = method_name unless method_name == :all
+
+        DbMemoize::Value.where(conditions).delete_all
       end
 
       private
