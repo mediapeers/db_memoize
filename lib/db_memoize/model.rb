@@ -3,7 +3,7 @@ module DbMemoize
     extend ActiveSupport::Concern
 
     def memoized_value(method_name, args)
-      args_hash = ::Digest::MD5.hexdigest(args.to_s)
+      args_hash = ::Digest::MD5.hexdigest(Marshal.dump(args))
       cached_value = find_memoized_value(method_name, args_hash)
 
       unless cached_value
