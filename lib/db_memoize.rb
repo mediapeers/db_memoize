@@ -1,6 +1,7 @@
 require 'active_record'
 require 'active_support'
 require 'digest'
+require 'benchmark'
 require 'db_memoize/version'
 require 'db_memoize/value'
 require 'db_memoize/model'
@@ -12,7 +13,7 @@ module DbMemoize
     attr_writer :logger
 
     def logger
-      @logger ||= ::Rails.logger
+      @logger ||= ::Logger.new(STDOUT)
     end
   end
 end

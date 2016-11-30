@@ -10,8 +10,13 @@ module DbMemoize
       args_hash     = ::Digest::MD5.hexdigest(Marshal.dump(args))
       cached_value  = find_memoized_value(method_name, args_hash)
 
-      unless cached_value
-        cached_value = send("#{method_name}_without_memoize", *args)
+      if cached_value
+        log(method_name, 'cache hit')
+      else
+        time = ::Benchmark.realtime do
+          cached_value = send("#{method_name}_without_memoize", *args)
+        end
+        log(method_name, "cache miss. took #{format('%.2f', time * 1_000)}ms")
         create_memoized_value(method_name, args_hash, cached_value)
       end
 
@@ -45,6 +50,10 @@ module DbMemoize
       end
 
       entry && Marshal.load(entry.value)
+    end
+
+    def log(method_name, msg)
+      DbMemoize.logger.info "DbMemoize <#{self.class.name} id: #{id}>##{method_name} - #{msg}"
     end
 
     module ClassMethods
