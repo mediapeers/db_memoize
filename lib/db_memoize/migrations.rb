@@ -3,7 +3,7 @@ module DbMemoize
     class << self
       def create_tables(migration)
         migration.create_table :memoized_values, id: false do |t|
-          t.string :entity_type
+          t.string :entity_table_name
           t.string :entity_id
           t.string :method_name
           t.string :arguments_hash
@@ -12,7 +12,7 @@ module DbMemoize
           t.datetime :created_at
         end
 
-        migration.add_index :memoized_values, [:entity_type, :entity_id]
+        migration.add_index :memoized_values, [:entity_table_name, :entity_id]
       end
     end
   end

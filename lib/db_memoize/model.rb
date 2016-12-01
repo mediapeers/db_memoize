@@ -35,6 +35,7 @@ module DbMemoize
 
     def create_memoized_value(method_name, args_hash, value)
       memoized_values.create!(
+        entity_table_name: self.class.table_name,
         method_name: method_name,
         arguments_hash: args_hash,
         custom_key: memoized_custom_key,
@@ -66,16 +67,14 @@ module DbMemoize
         records_or_ids = Array(records_or_ids)
         return if records_or_ids.empty?
 
-        if records_or_ids.first.is_a?(ActiveRecord::Base)
-          ids  = records_or_ids.map(&:id)
-          type = records_or_ids.first.class.base_class.name
-        else
-          ids  = records_or_ids
-          type = base_class.name
-        end
+        ids = if records_or_ids.first.is_a?(ActiveRecord::Base)
+                records_or_ids.map(&:id)
+              else
+                records_or_ids
+              end
 
         conditions = {
-          entity_type: type,
+          entity_table_name: table_name,
           entity_id: ids
         }
         conditions[:method_name] = method_name unless method_name == :all
@@ -95,7 +94,9 @@ module DbMemoize
 
       def create_memoized_values_association
         unless reflect_on_association(:memoized_values)
-          has_many :memoized_values, dependent: :destroy, class_name: 'DbMemoize::Value', as: :entity
+          conditions = { entity_table_name: table_name }
+          has_many :memoized_values, -> { where(conditions) },
+                   dependent: :destroy, class_name: 'DbMemoize::Value', foreign_key: :entity_id
         end
       end
     end
