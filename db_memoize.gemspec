@@ -46,6 +46,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop', '~> 0.37.2'
   spec.add_development_dependency 'database_cleaner', '~> 1.5.3'
   spec.add_development_dependency 'factory_girl', '~> 4.7.0'
+  spec.add_development_dependency 'ruby-progressbar', '~> 1.7'
   spec.add_development_dependency 'ffaker'
   spec.add_development_dependency 'awesome_print'
 end
