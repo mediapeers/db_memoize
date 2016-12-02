@@ -16,7 +16,7 @@ module DbMemoize
         time = ::Benchmark.realtime do
           cached_value = send("#{method_name}_without_memoize", *args)
         end
-        log(method_name, "cache miss. took #{format('%.2f', time * 1_000)}ms")
+        log(method_name, "cache miss. took #{sprintf('%.2f', time * 1_000)}ms")
         create_memoized_value(method_name, args_hash, cached_value)
       end
 
@@ -47,7 +47,7 @@ module DbMemoize
       entry = memoized_values.detect do |rec|
         rec.method_name == method_name.to_s &&
           rec.arguments_hash == args_hash &&
-          rec.custom_key == memoized_custom_key
+          rec.custom_key == memoized_custom_key.to_s
       end
 
       entry && Marshal.load(entry.value)
