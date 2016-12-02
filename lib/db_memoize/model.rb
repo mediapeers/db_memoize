@@ -16,6 +16,8 @@ module DbMemoize
         time = ::Benchmark.realtime do
           cached_value = send("#{method_name}_without_memoize", *args)
         end
+        # dear rubocop, we can't use `format` here, since some of our models have a
+        # `format` method themselves.
         log(method_name, "cache miss. took #{sprintf('%.2f', time * 1_000)}ms")
         create_memoized_value(method_name, args_hash, cached_value)
       end
