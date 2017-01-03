@@ -17,6 +17,7 @@ class Letter < ActiveRecord::Base
   def bye
    	'Best regards'
   end
+  db_memoize :bye
 end
 ```
 
@@ -98,6 +99,21 @@ To invalidate all cached keys easily you can specify a default custom key to be 
 ```
 DbMemoize.default_custom_key = 'e.g. latest git commit hash'
 ```
+
+### Rake Tasks
+
+To _warmup_ your cache you can pre-generate cached values via a rake task like this (only works for methods not depending on arguments)
+
+```
+bundle exec rake db_memoize:warmup class=Letter methods=hello,bye
+```
+
+Similarly you can wipe all cached values for a given class
+
+```
+bundle exec rake db_memoize:clear class=Letter
+```
+
 
 Have fun!
 
