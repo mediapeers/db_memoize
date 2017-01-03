@@ -19,4 +19,9 @@ class Bicycle < ActiveRecord::Base
     }
   end
   db_memoize :facilities
+
+  def wise_saying
+    nil
+  end
+  db_memoize :wise_saying
 end

@@ -36,6 +36,15 @@ describe DbMemoize::Model do
       instance.gears_count # from cache
     end
 
+    context 'method returning nil' do
+      it 'calls original method only once' do
+        expect(instance).to receive(:wise_saying_without_memoize).once.and_call_original
+
+        instance.wise_saying
+        instance.wise_saying # from cache
+      end
+    end
+
     context 'method with parameters' do
       it 'creates a cached value for each parameter set' do
         expect {

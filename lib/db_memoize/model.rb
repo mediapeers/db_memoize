@@ -7,22 +7,26 @@ module DbMemoize
         return send("#{method_name}_without_memoize", *args)
       end
 
+      value         = nil
       args_hash     = ::Digest::MD5.hexdigest(Marshal.dump(args))
       cached_value  = find_memoized_value(method_name, args_hash)
 
       if cached_value
         log(method_name, 'cache hit')
+        value = Marshal.load(cached_value.value)
       else
         time = ::Benchmark.realtime do
-          cached_value = send("#{method_name}_without_memoize", *args)
+          value = send("#{method_name}_without_memoize", *args)
         end
         # dear rubocop, we can't use `format` here, since some of our models have a
         # `format` method themselves.
+        # rubocop:disable Style/FormatString
         log(method_name, "cache miss. took #{sprintf('%.2f', time * 1_000)}ms")
-        create_memoized_value(method_name, args_hash, cached_value)
+        # rubocop:enable Style/FormatString
+        create_memoized_value(method_name, args_hash, value)
       end
 
-      cached_value
+      value
     end
 
     def unmemoize(method_name = :all)
@@ -38,21 +42,19 @@ module DbMemoize
     def create_memoized_value(method_name, args_hash, value)
       memoized_values.create!(
         entity_table_name: self.class.table_name,
-        method_name: method_name,
+        method_name: method_name.to_s,
         arguments_hash: args_hash,
-        custom_key: memoized_custom_key,
+        custom_key: memoized_custom_key.to_s,
         value: Marshal.dump(value)
       )
     end
 
     def find_memoized_value(method_name, args_hash)
-      entry = memoized_values.detect do |rec|
+      memoized_values.detect do |rec|
         rec.method_name == method_name.to_s &&
           rec.arguments_hash == args_hash &&
           rec.custom_key == memoized_custom_key.to_s
       end
-
-      entry && Marshal.load(entry.value)
     end
 
     def log(method_name, msg)
