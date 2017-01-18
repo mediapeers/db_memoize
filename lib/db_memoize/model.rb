@@ -68,25 +68,47 @@ module DbMemoize
       end
 
       def unmemoize(records_or_ids, method_name = :all)
-        records_or_ids = Array(records_or_ids)
-        return if records_or_ids.empty?
-
-        ids = if records_or_ids.first.is_a?(ActiveRecord::Base)
-                records_or_ids.map(&:id)
-              else
-                records_or_ids
-              end
-
         conditions = {
           entity_table_name: table_name,
-          entity_id: ids
+          entity_id: find_ids(records_or_ids)
         }
         conditions[:method_name] = method_name unless method_name == :all
 
         DbMemoize::Value.where(conditions).delete_all
       end
 
+      def memoize_values(records_or_ids, values)
+        transaction do
+          ids        = find_ids(records_or_ids)
+          args_hash  = ::Digest::MD5.hexdigest(Marshal.dump([]))
+
+          values = values.inject({}) do |hsh, (key, value)|
+            hsh.merge(key => Marshal.dump(value))
+          end
+
+          ids.each do |id|
+            values.each do |name, value|
+              DbMemoize::Value.create!(
+                entity_table_name: table_name,
+                entity_id: id,
+                method_name: name,
+                arguments_hash: args_hash,
+                custom_key: DbMemoize.default_custom_key.to_s,
+                value: value
+              )
+            end
+          end
+        end
+      end
+
       private
+
+      def find_ids(records_or_ids)
+        records_or_ids = Array(records_or_ids)
+        return [] if records_or_ids.empty?
+
+        records_or_ids.first.is_a?(ActiveRecord::Base) ? records_or_ids.map(&:id) : records_or_ids
+      end
 
       def create_alias_method(method_name)
         define_method "#{method_name}_with_memoize" do |*args|
@@ -100,7 +122,7 @@ module DbMemoize
         unless reflect_on_association(:memoized_values)
           conditions = { entity_table_name: table_name }
           has_many :memoized_values, -> { where(conditions) },
-                   dependent: :destroy, class_name: 'DbMemoize::Value', foreign_key: :entity_id
+                   dependent: :delete_all, class_name: 'DbMemoize::Value', foreign_key: :entity_id
         end
       end
     end
