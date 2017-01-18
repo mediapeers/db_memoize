@@ -135,6 +135,13 @@ describe DbMemoize::Model do
         puts "took #{benchmark.total.round(2)}s"
       end
     end
+
+    describe '#memoize_values' do
+      it 'creates memoized values' do
+        expect { instance.memoize_values(gears_count: 7) }
+          .to change { DbMemoize::Value.count }.by(1)
+      end
+    end
   end
 
   context 'cache wiping' do

@@ -30,11 +30,24 @@ module DbMemoize
     end
 
     def unmemoize(method_name = :all)
-      self.class.unmemoize(self, method_name)
+      if method_name != :all
+        # FIXME: this works, but isn't immediately visible on the record
+        memoized_values.where(method_name: method_name).delete_all
+      else
+        memoized_values.clear
+      end
     end
 
     def memoized_custom_key
       ::DbMemoize.default_custom_key
+    end
+
+    def memoize_values(values, *args)
+      args_hash = ::Digest::MD5.hexdigest(Marshal.dump(args))
+
+      values.each do |name, value|
+        create_memoized_value(name, args_hash, value)
+      end
     end
 
     private
@@ -77,14 +90,10 @@ module DbMemoize
         DbMemoize::Value.where(conditions).delete_all
       end
 
-      def memoize_values(records_or_ids, values)
+      def memoize_values(records_or_ids, values, *args)
         transaction do
           ids        = find_ids(records_or_ids)
-          args_hash  = ::Digest::MD5.hexdigest(Marshal.dump([]))
-
-          values = values.inject({}) do |hsh, (key, value)|
-            hsh.merge(key => Marshal.dump(value))
-          end
+          args_hash  = ::Digest::MD5.hexdigest(Marshal.dump(args))
 
           ids.each do |id|
             values.each do |name, value|
@@ -94,7 +103,7 @@ module DbMemoize
                 method_name: name,
                 arguments_hash: args_hash,
                 custom_key: DbMemoize.default_custom_key.to_s,
-                value: value
+                value: Marshal.dump(value)
               )
             end
           end
