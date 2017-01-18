@@ -4,7 +4,7 @@ module DbMemoize
       def create_tables(migration)
         migration.create_table :memoized_values, id: false do |t|
           t.string :entity_table_name
-          t.string :entity_id
+          t.integer :entity_id
           t.string :method_name
           t.string :arguments_hash
           t.string :custom_key
