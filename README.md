@@ -114,6 +114,23 @@ Similarly you can wipe all cached values for a given class
 bundle exec rake db_memoize:clear class=Letter
 ```
 
+### Setup
+
+To create the required DB tables add a migration like this:
+
+```
+class CreateMemoizedValues < ActiveRecord::Migration
+  def up
+    require 'db_memoize/migrations'
+    DbMemoize::Migrations.create_tables(self)
+  end
+
+  def down
+    drop_table :memoized_values
+  end
+end
+```
+
 
 Have fun!
 
