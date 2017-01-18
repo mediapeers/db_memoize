@@ -41,4 +41,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'ruby-progressbar', '~> 1.7'
   spec.add_development_dependency 'ffaker'
   spec.add_development_dependency 'awesome_print'
+  spec.add_development_dependency 'gem-release'
 end
