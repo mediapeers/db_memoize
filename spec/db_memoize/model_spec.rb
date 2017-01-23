@@ -65,18 +65,6 @@ describe DbMemoize::Model do
       end
     end
 
-    context 'custom key' do
-      it 'calls original method again if custom key has changed' do
-        expect(instance).to receive(:gears_count_without_memoize).exactly(2).times.and_call_original
-
-        DbMemoize.default_custom_key = 'v1'
-        instance.gears_count
-
-        DbMemoize.default_custom_key = 'v2'
-        instance.gears_count
-      end
-    end
-
     context 'dirty record' do
       let(:instance) do
         rec = create(:bicycle)

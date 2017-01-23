@@ -38,10 +38,6 @@ module DbMemoize
       end
     end
 
-    def memoized_custom_key
-      ::DbMemoize.default_custom_key
-    end
-
     def memoize_values(values, *args)
       args_hash = ::Digest::MD5.hexdigest(Marshal.dump(args))
 
@@ -57,7 +53,6 @@ module DbMemoize
         entity_table_name: self.class.table_name,
         method_name: method_name.to_s,
         arguments_hash: args_hash,
-        custom_key: memoized_custom_key.to_s,
         value: Marshal.dump(value)
       )
     end
@@ -65,8 +60,7 @@ module DbMemoize
     def find_memoized_value(method_name, args_hash)
       memoized_values.detect do |rec|
         rec.method_name == method_name.to_s &&
-          rec.arguments_hash == args_hash &&
-          rec.custom_key == memoized_custom_key.to_s
+          rec.arguments_hash == args_hash
       end
     end
 
@@ -102,7 +96,6 @@ module DbMemoize
                 entity_id: id,
                 method_name: name,
                 arguments_hash: args_hash,
-                custom_key: DbMemoize.default_custom_key.to_s,
                 value: Marshal.dump(value)
               )
             end

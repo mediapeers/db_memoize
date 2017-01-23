@@ -94,12 +94,6 @@ DbMemoize by default will write log output to STDOUT. You can change this by set
 DbMemoize.logger = your_logger
 ```
 
-To invalidate all cached keys easily you can specify a default custom key to be used internally like this:
-
-```
-DbMemoize.default_custom_key = 'e.g. latest git commit hash'
-```
-
 ### Rake Tasks
 
 To _warmup_ your cache you can pre-generate cached values via a rake task like this (only works for methods not depending on arguments)

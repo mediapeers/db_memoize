@@ -9,7 +9,6 @@ require 'db_memoize/railtie' if defined?(Rails)
 
 module DbMemoize
   class << self
-    attr_accessor :default_custom_key
     attr_writer :logger
 
     def logger

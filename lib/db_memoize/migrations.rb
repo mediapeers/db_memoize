@@ -7,7 +7,6 @@ module DbMemoize
           t.integer :entity_id
           t.string :method_name
           t.string :arguments_hash
-          t.string :custom_key
           t.binary :value
           t.datetime :created_at
         end
