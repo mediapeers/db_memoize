@@ -16,6 +16,16 @@ describe DbMemoize::Model do
     expect(klass.new).to respond_to(:memoized_values)
   end
 
+  describe '.db_memoized_methods' do
+    it 'returns list of methods to be memoized' do
+      expect(Bicycle.db_memoized_methods).to eq([:gears_count, :shift, :facilities, :wise_saying])
+    end
+
+    it 'returns list of all methods to be memoized for subclass' do
+      expect(ElectricBicycle.db_memoized_methods).to eq([:gears_count, :shift, :facilities, :wise_saying, :max_speed])
+    end
+  end
+
   context 'reading/writing' do
     let(:instance) { create(:bicycle) }
 

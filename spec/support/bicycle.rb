@@ -25,3 +25,10 @@ class Bicycle < ActiveRecord::Base
   end
   db_memoize :wise_saying
 end
+
+class ElectricBicycle < Bicycle
+  def max_speed
+    45
+  end
+  db_memoize :max_speed
+end

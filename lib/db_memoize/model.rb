@@ -70,8 +70,16 @@ module DbMemoize
 
     module ClassMethods
       def db_memoize(method_name)
+        @db_memoized_methods ||= []
+        @db_memoized_methods.push(method_name.to_sym)
+
         create_alias_method(method_name)
         create_memoized_values_association
+      end
+
+      def db_memoized_methods
+        methods = @db_memoized_methods || []
+        superclass.respond_to?(:db_memoized_methods) ? (superclass.db_memoized_methods + methods).uniq : methods
       end
 
       def unmemoize(records_or_ids, method_name = :all)
