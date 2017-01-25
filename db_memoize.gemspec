@@ -22,12 +22,8 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_development_dependency 'railties', '~> 4.2'
-  spec.add_development_dependency 'activemodel', '~> 4.2'
-  spec.add_development_dependency 'actionpack', '~> 4.2'
-  spec.add_development_dependency 'activesupport', '~> 4.2'
   spec.add_development_dependency 'activerecord', '~> 4.2'
-  spec.add_development_dependency 'activejob', '~> 4.2'
-  spec.add_development_dependency 'arel', '6.0.0'
+
   spec.add_development_dependency 'rake', '~> 10.5'
   spec.add_development_dependency 'sqlite3'
   spec.add_development_dependency 'rspec-rails', '~> 3.4'
@@ -39,7 +35,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'database_cleaner', '~> 1.5.3'
   spec.add_development_dependency 'factory_girl', '~> 4.7.0'
   spec.add_development_dependency 'ruby-progressbar', '~> 1.7'
-  spec.add_development_dependency 'ffaker'
   spec.add_development_dependency 'awesome_print'
   spec.add_development_dependency 'gem-release'
 end
