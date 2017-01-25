@@ -27,13 +27,22 @@ module DbMemoize
 
     def unmemoize(method_name = :all)
       if method_name != :all
-        # FIXME: this works, but isn't immediately visible on the record
+        # FIXME: this works, but isn't immediately visible on the record.
+        # See also note in create_memoized_value.
         memoized_values.where(method_name: method_name).delete_all
       else
         memoized_values.clear
       end
     end
 
+    #
+    # Used to set multiple memoized values in one go.
+    #
+    # Example:
+    #
+    #   product.memoize_values full_title: "my full title",
+    #                          autocomplete_info: "my autocomplete_info"
+    #
     def memoize_values(values, *args)
       args_hash = ::Digest::MD5.hexdigest(Marshal.dump(args))
 
@@ -45,6 +54,9 @@ module DbMemoize
     private
 
     def create_memoized_value(method_name, args_hash, value)
+      # [TODO] - It would be nice to have an optimized, pg-based inserter
+      #          here, for up to 10 times speed. However, the memoized_values
+      #          array must then be properly reset.
       memoized_values.create!(
         entity_table_name: self.class.table_name,
         method_name: method_name.to_s,
