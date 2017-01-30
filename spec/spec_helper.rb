@@ -1,16 +1,10 @@
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
-require "db_memoize"
+
 require 'active_record'
-require 'ffaker'
 require 'pry'
 require 'awesome_print'
 require 'database_cleaner'
 require 'factory_girl'
-require './spec/support/bicycle'
-
-ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:"
-
-load File.dirname(__FILE__) + '/schema.rb'
 
 unless ENV['SKIP_COVERAGE']
   require 'simplecov'
@@ -19,6 +13,13 @@ unless ENV['SKIP_COVERAGE']
     minimum_coverage 98
   end
 end
+
+require "db_memoize"
+require './spec/support/bicycle'
+
+ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:"
+
+load File.dirname(__FILE__) + '/schema.rb'
 
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods

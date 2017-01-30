@@ -12,18 +12,14 @@ module DbMemoize
       cached_value  = find_memoized_value(method_name, args_hash)
 
       if cached_value
-        log(method_name, 'cache hit')
         value = Marshal.load(cached_value.value)
+        Helpers.log(self, method_name, 'cache hit')
       else
         time = ::Benchmark.realtime do
           value = send("#{method_name}_without_memoize", *args)
+          create_memoized_value(method_name, args_hash, value)
         end
-        # dear rubocop, we can't use `format` here, since some of our models have a
-        # `format` method themselves.
-        # rubocop:disable Style/FormatString
-        log(method_name, "cache miss. took #{sprintf('%.2f', time * 1_000)}ms")
-        # rubocop:enable Style/FormatString
-        create_memoized_value(method_name, args_hash, value)
+        Helpers.log(self, method_name, "cache miss. took #{Kernel.format '%.2f msecs', time * 1_000}")
       end
 
       value
@@ -31,13 +27,22 @@ module DbMemoize
 
     def unmemoize(method_name = :all)
       if method_name != :all
-        # FIXME: this works, but isn't immediately visible on the record
+        # FIXME: this works, but isn't immediately visible on the record.
+        # See also note in create_memoized_value.
         memoized_values.where(method_name: method_name).delete_all
       else
         memoized_values.clear
       end
     end
 
+    #
+    # Used to set multiple memoized values in one go.
+    #
+    # Example:
+    #
+    #   product.memoize_values full_title: "my full title",
+    #                          autocomplete_info: "my autocomplete_info"
+    #
     def memoize_values(values, *args)
       args_hash = ::Digest::MD5.hexdigest(Marshal.dump(args))
 
@@ -49,6 +54,9 @@ module DbMemoize
     private
 
     def create_memoized_value(method_name, args_hash, value)
+      # [TODO] - It would be nice to have an optimized, pg-based inserter
+      #          here, for up to 10 times speed. However, the memoized_values
+      #          array must then be properly reset.
       memoized_values.create!(
         entity_table_name: self.class.table_name,
         method_name: method_name.to_s,
@@ -58,14 +66,12 @@ module DbMemoize
     end
 
     def find_memoized_value(method_name, args_hash)
+      method_name = method_name.to_s
+
       memoized_values.detect do |rec|
-        rec.method_name == method_name.to_s &&
+        rec.method_name == method_name &&
           rec.arguments_hash == args_hash
       end
-    end
-
-    def log(method_name, msg)
-      DbMemoize.logger.info "DbMemoize <#{self.class.name} id: #{id}>##{method_name} - #{msg}"
     end
 
     module ClassMethods
@@ -73,7 +79,9 @@ module DbMemoize
         @db_memoized_methods ||= []
         @db_memoized_methods.push(method_name.to_sym)
 
-        create_alias_method(method_name)
+        # [TODO] - should the create_memoized_** functions really be called
+        # when the method_name is in @db_memoized_methods already?
+        create_memoized_alias_method(method_name)
         create_memoized_values_association
       end
 
@@ -85,7 +93,7 @@ module DbMemoize
       def unmemoize(records_or_ids, method_name = :all)
         conditions = {
           entity_table_name: table_name,
-          entity_id: find_ids(records_or_ids)
+          entity_id: Helpers.find_ids(records_or_ids)
         }
         conditions[:method_name] = method_name unless method_name == :all
 
@@ -94,7 +102,7 @@ module DbMemoize
 
       def memoize_values(records_or_ids, values, *args)
         transaction do
-          ids        = find_ids(records_or_ids)
+          ids        = Helpers.find_ids(records_or_ids)
           args_hash  = ::Digest::MD5.hexdigest(Marshal.dump(args))
 
           ids.each do |id|
@@ -113,14 +121,7 @@ module DbMemoize
 
       private
 
-      def find_ids(records_or_ids)
-        records_or_ids = Array(records_or_ids)
-        return [] if records_or_ids.empty?
-
-        records_or_ids.first.is_a?(ActiveRecord::Base) ? records_or_ids.map(&:id) : records_or_ids
-      end
-
-      def create_alias_method(method_name)
+      def create_memoized_alias_method(method_name)
         define_method "#{method_name}_with_memoize" do |*args|
           memoized_value(method_name, args)
         end
