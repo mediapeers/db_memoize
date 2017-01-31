@@ -12,7 +12,7 @@ module DbMemoize
     end
 
     def log(model, method_name, msg)
-      DbMemoize.logger.info "DbMemoize <#{model.class.name} id: #{model.id}>##{method_name} - #{msg}"
+      DbMemoize.logger.send(DbMemoize.log_level, "DbMemoize <#{model.class.name} id: #{model.id}>##{method_name} - #{msg}")
     end
   end
 end

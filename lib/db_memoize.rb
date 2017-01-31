@@ -10,10 +10,14 @@ require 'db_memoize/railtie' if defined?(Rails)
 
 module DbMemoize
   class << self
-    attr_writer :logger
+    attr_writer :logger, :log_level
 
     def logger
       @logger ||= ::Logger.new(STDOUT)
+    end
+
+    def log_level
+      @log_level ||= :debug
     end
   end
 end
