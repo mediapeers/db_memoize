@@ -12,7 +12,7 @@ module DbMemoize
       cached_value  = find_memoized_value(method_name, args_hash)
 
       if cached_value
-        value = Marshal.load(cached_value.value)
+        value = Helpers.unmarshal(cached_value.value)
         Helpers.log(self, method_name, 'cache hit')
       else
         time = ::Benchmark.realtime do
@@ -62,7 +62,7 @@ module DbMemoize
         entity_table_name: self.class.table_name,
         method_name: method_name.to_s,
         arguments_hash: args_hash,
-        value: Marshal.dump(value)
+        value: Helpers.marshal(value)
       )
     end
 
@@ -114,7 +114,7 @@ module DbMemoize
                 entity_id: id,
                 method_name: name,
                 arguments_hash: args_hash,
-                value: Marshal.dump(value)
+                value: Helpers.marshal(value)
               )
             end
           end
