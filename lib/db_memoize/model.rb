@@ -8,7 +8,7 @@ module DbMemoize
       end
 
       value         = nil
-      args_hash     = ::Digest::MD5.hexdigest(Marshal.dump(args))
+      args_hash     = Helpers.calculate_arguments_hash(args)
       cached_value  = find_memoized_value(method_name, args_hash)
 
       if cached_value
@@ -103,7 +103,7 @@ module DbMemoize
       def memoize_values(records_or_ids, values, *args)
         transaction do
           ids        = Helpers.find_ids(records_or_ids)
-          args_hash  = ::Digest::MD5.hexdigest(Marshal.dump(args))
+          args_hash  = Helpers.calculate_arguments_hash(args)
 
           ids.each do |id|
             values.each do |name, value|

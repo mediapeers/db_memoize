@@ -16,5 +16,9 @@ module DbMemoize
         "DbMemoize <#{model.class.name} id: #{model.id}>##{method_name} - #{msg}"
       end
     end
+
+    def calculate_arguments_hash(arguments)
+      arguments.empty? ? nil : ::Digest::MD5.hexdigest(Marshal.dump(arguments))
+    end
   end
 end

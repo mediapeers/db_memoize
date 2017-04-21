@@ -56,6 +56,14 @@ describe DbMemoize::Model do
       end
     end
 
+    context 'method without parameters' do
+      it 'creates a cached value with arguments_hash being NULL' do
+        expect {
+          instance.gears_count
+        }.to change { DbMemoize::Value.where('arguments_hash IS NULL').count }.by(1)
+      end
+    end
+
     context 'method with parameters' do
       it 'creates a cached value for each parameter set' do
         expect {
@@ -124,6 +132,7 @@ describe DbMemoize::Model do
       it 'saves correct values' do
         klass.memoize_values([instance, instance2], gears_count: 7)
         expect(instance.reload.gears_count).to eq(7)
+        expect(instance2.reload.gears_count).to eq(7)
       end
 
       it 'performs benchmark for 500 values to be created' do
