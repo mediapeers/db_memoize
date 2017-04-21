@@ -44,7 +44,8 @@ module DbMemoize
     #                          autocomplete_info: "my autocomplete_info"
     #
     def memoize_values(values, *args)
-      args_hash = ::Digest::MD5.hexdigest(Marshal.dump(args))
+      # [TODO] - when creating many memoized values: should we even support arguments here?
+      args_hash = Helpers.calculate_arguments_hash(args)
 
       values.each do |name, value|
         create_memoized_value(name, args_hash, value)
@@ -101,6 +102,7 @@ module DbMemoize
       end
 
       def memoize_values(records_or_ids, values, *args)
+        # [TODO] - when creating many memoized values: should we even support arguments here?
         transaction do
           ids        = Helpers.find_ids(records_or_ids)
           args_hash  = Helpers.calculate_arguments_hash(args)
