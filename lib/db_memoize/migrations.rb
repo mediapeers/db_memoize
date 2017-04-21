@@ -12,17 +12,17 @@ module DbMemoize
         end
 
         migration.add_index :memoized_values, [:entity_table_name, :entity_id]
-        update_empty_arguments(migration)
+        migrate_empty_arguments_support(migration)
       end
 
-      def update_empty_arguments(migration)
+      def migrate_empty_arguments_support(migration)
         # entity_id/entity_table_name should have a better chance to be useful, since
         # there is more variance in entity_ids than there is in entity_table_names.
         migration.remove_index :memoized_values, [:entity_table_name, :entity_id]
         migration.add_index :memoized_values, [:entity_id, :entity_table_name]
 
         # add an index to be useful to look up entries without arguments_hash.
-        migration.execute "CREATE INDEX memoized_attributes_idx ON memoized_values((arguments_hash IS NULL))"
+        migration.execute 'CREATE INDEX memoized_attributes_idx ON memoized_values((arguments_hash IS NULL))'
       end
     end
   end
