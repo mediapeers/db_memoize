@@ -97,7 +97,7 @@ module DbMemoize
       INSERT_MEMOIZED_VALUE_SQL = <<-SQL.freeze
         INSERT INTO memoized_values
                     (entity_table_name, entity_id, method_name, arguments_hash, value, created_at)
-                    VALUES($1,$2,$3,$4,$5,$6)
+                    VALUES($1,$2,$3,$4,$5,current_timestamp)
       SQL
 
       def memoize_value(record, method_name, args_hash, value)
@@ -107,8 +107,7 @@ module DbMemoize
                          record.id,              # entity_id,
                          method_name.to_s,       # method_name
                          args_hash,              # arguments_hash,
-                         Helpers.marshal(value), # value
-                         Time.now                # created_at
+                         Helpers.marshal(value)  # value
                        ])
       end
 
@@ -119,7 +118,6 @@ module DbMemoize
           args_hash  = Helpers.calculate_arguments_hash(args)
 
           pg = connection.raw_connection
-          now = Time.now
 
           ids.each do |id|
             values.each do |method_name, value|
@@ -128,8 +126,7 @@ module DbMemoize
                                id,                     # entity_id,
                                method_name.to_s,       # method_name
                                args_hash,              # arguments_hash,
-                               Helpers.marshal(value), # value
-                               now                     # created_at
+                               Helpers.marshal(value)  # value
                              ])
             end
           end
