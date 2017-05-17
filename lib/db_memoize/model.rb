@@ -54,16 +54,25 @@ module DbMemoize
 
     private
 
+    INSERT_MEMOIZED_VALUE_SQL = <<-SQL
+      INSERT INTO memoized_values 
+                  (entity_table_name, entity_id, method_name, arguments_hash, value, created_at)
+                  VALUES($1,$2,$3,$4,$5,$6)
+    SQL
+
     def create_memoized_value(method_name, args_hash, value)
-      # [TODO] - It would be nice to have an optimized, pg-based inserter
-      #          here, for up to 10 times speed. However, the memoized_values
-      #          array must then be properly reset.
-      memoized_values.create!(
-        entity_table_name: self.class.table_name,
-        method_name: method_name.to_s,
-        arguments_hash: args_hash,
-        value: Helpers.marshal(value)
-      )
+      connection = self.class.connection
+      connection.raw_connection.exec_params(INSERT_MEMOIZED_VALUE_SQL, [
+        self.class.table_name,  # entity_table_name
+        id,                     # entity_id,
+        method_name.to_s,       # method_name 
+        args_hash,              # arguments_hash, 
+        Helpers.marshal(value), # value 
+        Time.now                # created_at
+      ])
+
+      # 
+      @association_cache.delete :memoized_values
     end
 
     def find_memoized_value(method_name, args_hash)
