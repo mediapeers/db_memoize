@@ -54,24 +54,8 @@ module DbMemoize
 
     private
 
-    INSERT_MEMOIZED_VALUE_SQL = <<-SQL
-      INSERT INTO memoized_values 
-                  (entity_table_name, entity_id, method_name, arguments_hash, value, created_at)
-                  VALUES($1,$2,$3,$4,$5,$6)
-    SQL
-
     def create_memoized_value(method_name, args_hash, value)
-      connection = self.class.connection
-      connection.raw_connection.exec_params(INSERT_MEMOIZED_VALUE_SQL, [
-        self.class.table_name,  # entity_table_name
-        id,                     # entity_id,
-        method_name.to_s,       # method_name 
-        args_hash,              # arguments_hash, 
-        Helpers.marshal(value), # value 
-        Time.now                # created_at
-      ])
-
-      # 
+      self.class.memoize_value(self, method_name, args_hash, value)
       @association_cache.delete :memoized_values
     end
 
@@ -108,6 +92,24 @@ module DbMemoize
         conditions[:method_name] = method_name unless method_name == :all
 
         DbMemoize::Value.where(conditions).delete_all
+      end
+
+      INSERT_MEMOIZED_VALUE_SQL = <<-SQL.freeze
+        INSERT INTO memoized_values
+                    (entity_table_name, entity_id, method_name, arguments_hash, value, created_at)
+                    VALUES($1,$2,$3,$4,$5,$6)
+      SQL
+
+      def memoize_value(record, method_name, args_hash, value)
+        pg = connection.raw_connection
+        pg.exec_params(INSERT_MEMOIZED_VALUE_SQL, [
+                         table_name,             # entity_table_name
+                         record.id,              # entity_id,
+                         method_name.to_s,       # method_name
+                         args_hash,              # arguments_hash,
+                         Helpers.marshal(value), # value
+                         Time.now                # created_at
+                       ])
       end
 
       def memoize_values(records_or_ids, values, *args)
