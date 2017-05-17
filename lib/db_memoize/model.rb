@@ -118,15 +118,19 @@ module DbMemoize
           ids        = Helpers.find_ids(records_or_ids)
           args_hash  = Helpers.calculate_arguments_hash(args)
 
+          pg = connection.raw_connection
+          now = Time.now
+
           ids.each do |id|
-            values.each do |name, value|
-              DbMemoize::Value.create!(
-                entity_table_name: table_name,
-                entity_id: id,
-                method_name: name,
-                arguments_hash: args_hash,
-                value: Helpers.marshal(value)
-              )
+            values.each do |method_name, value|
+              pg.exec_params(INSERT_MEMOIZED_VALUE_SQL, [
+                               table_name,             # entity_table_name
+                               id,                     # entity_id,
+                               method_name.to_s,       # method_name
+                               args_hash,              # arguments_hash,
+                               Helpers.marshal(value), # value
+                               now                     # created_at
+                             ])
             end
           end
         end
