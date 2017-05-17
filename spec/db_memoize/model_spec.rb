@@ -135,11 +135,12 @@ describe DbMemoize::Model do
         expect(instance2.reload.gears_count).to eq(7)
       end
 
-      it 'performs benchmark for 500 values to be created' do
+      it 'performs benchmark for a number of values to be created' do
+        cnt = 10000
         benchmark = Benchmark.measure do
-          klass.memoize_values((1..500).to_a, gears_count: 7)
+          klass.memoize_values((1..cnt).to_a, gears_count: 7)
         end
-        puts "took #{benchmark.total.round(2)}s"
+        STDERR.puts "storing #{cnt} values took #{benchmark.total.round(3)}s"
       end
     end
 
