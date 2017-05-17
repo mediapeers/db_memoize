@@ -23,7 +23,7 @@ module DbMemoize
 
         # add an index to be useful to look up entries without arguments_hash. This is
         # skipped during tests where we use sqlite3, but should run fine on postgres.
-        return if migration.connection.class.name == "ActiveRecord::ConnectionAdapters::SQLite3Adapter"
+        return if migration.connection.class.name == 'ActiveRecord::ConnectionAdapters::SQLite3Adapter'
         migration.execute 'CREATE INDEX memoized_attributes_idx ON memoized_values((arguments_hash IS NULL))'
       end
     end
