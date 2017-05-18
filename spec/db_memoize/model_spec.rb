@@ -72,11 +72,24 @@ describe DbMemoize::Model do
         }.to change { DbMemoize::Value.count }.by(2)
       end
 
-      it 'returns correct cached values for given parameters' do
-        expect_any_instance_of(Bicycle).to receive(:shift_without_memoize).exactly(2).times.and_call_original
-
+      it 'uses the cached entries when looking up a value in the same instance' do
         instance.shift(1)
         instance.shift(2)
+
+        expect_any_instance_of(Bicycle).not_to receive(:shift_without_memoize)
+
+        expect(instance.shift(1)).to eq('1 shifted!')
+        expect(instance.shift(2)).to eq('2 shifted!')
+      end
+
+      it 'uses the cached entries when looking up a value in a new instance' do
+        instance.shift(1)
+        instance.shift(2)
+
+        expect_any_instance_of(Bicycle).not_to receive(:shift_without_memoize)
+
+        instance_id = instance.id
+        instance = Bicycle.find(instance_id)
 
         expect(instance.shift(1)).to eq('1 shifted!')
         expect(instance.shift(2)).to eq('2 shifted!')
@@ -136,7 +149,7 @@ describe DbMemoize::Model do
       end
 
       it 'performs benchmark for a number of values to be created' do
-        cnt = 10000
+        cnt = 10_000
         benchmark = Benchmark.measure do
           klass.memoize_values((1..cnt).to_a, gears_count: 7)
         end
