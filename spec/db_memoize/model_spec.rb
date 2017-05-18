@@ -65,17 +65,18 @@ describe DbMemoize::Model do
     end
 
     context 'method with parameters' do
+      before do
+        expect(DbMemoize::Value.count).to eq(0)
+
+        instance.shift(1)
+        instance.shift(2)
+      end
+
       it 'creates a cached value for each parameter set' do
-        expect {
-          instance.shift(1)
-          instance.shift(2)
-        }.to change { DbMemoize::Value.count }.by(2)
+        expect(DbMemoize::Value.count).to eq(2)
       end
 
       it 'uses the cached entries when looking up a value in the same instance' do
-        instance.shift(1)
-        instance.shift(2)
-
         expect_any_instance_of(Bicycle).not_to receive(:shift_without_memoize)
 
         expect(instance.shift(1)).to eq('1 shifted!')
@@ -83,9 +84,6 @@ describe DbMemoize::Model do
       end
 
       it 'uses the cached entries when looking up a value in a new instance' do
-        instance.shift(1)
-        instance.shift(2)
-
         expect_any_instance_of(Bicycle).not_to receive(:shift_without_memoize)
 
         instance_id = instance.id
