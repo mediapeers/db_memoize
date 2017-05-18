@@ -54,8 +54,13 @@ module DbMemoize
 
     private
 
-    def create_memoized_value(method_name, args_hash, value)
-      self.class.memoize_value(self, method_name, args_hash, value)
+    def create_memoized_value(method_name, arguments_hash, value)
+      ::DbMemoize::Value.metal.create! entity_table_name: self.class.table_name,
+                                       entity_id: id,
+                                       method_name: method_name.to_s,
+                                       arguments_hash: arguments_hash,
+                                       value: Helpers.marshal(value)
+
       @association_cache.delete :memoized_values
     end
 
@@ -94,40 +99,19 @@ module DbMemoize
         DbMemoize::Value.where(conditions).delete_all
       end
 
-      INSERT_MEMOIZED_VALUE_SQL = <<-SQL.freeze
-        INSERT INTO memoized_values
-                    (entity_table_name, entity_id, method_name, arguments_hash, value, created_at)
-                    VALUES($1,$2,$3,$4,$5,current_timestamp)
-      SQL
-
-      def memoize_value(record, method_name, args_hash, value)
-        pg = connection.raw_connection
-        pg.exec_params(INSERT_MEMOIZED_VALUE_SQL, [
-                         table_name,             # entity_table_name
-                         record.id,              # entity_id,
-                         method_name.to_s,       # method_name
-                         args_hash,              # arguments_hash,
-                         Helpers.marshal(value)  # value
-                       ])
-      end
-
       def memoize_values(records_or_ids, values, *args)
         # [TODO] - when creating many memoized values: should we even support arguments here?
         transaction do
-          ids        = Helpers.find_ids(records_or_ids)
-          args_hash  = Helpers.calculate_arguments_hash(args)
-
-          pg = connection.raw_connection
+          ids            = Helpers.find_ids(records_or_ids)
+          arguments_hash = Helpers.calculate_arguments_hash(args)
 
           ids.each do |id|
             values.each do |method_name, value|
-              pg.exec_params(INSERT_MEMOIZED_VALUE_SQL, [
-                               table_name,             # entity_table_name
-                               id,                     # entity_id,
-                               method_name.to_s,       # method_name
-                               args_hash,              # arguments_hash,
-                               Helpers.marshal(value)  # value
-                             ])
+              ::DbMemoize::Value.metal.create! entity_table_name: table_name,
+                                               entity_id: id,
+                                               method_name: method_name.to_s,
+                                               arguments_hash: arguments_hash,
+                                               value: Helpers.marshal(value)
             end
           end
         end
