@@ -10,7 +10,7 @@ unless ENV['SKIP_COVERAGE']
   require 'simplecov'
 
   SimpleCov.start do
-    minimum_coverage 98
+    minimum_coverage 96
   end
 end
 
