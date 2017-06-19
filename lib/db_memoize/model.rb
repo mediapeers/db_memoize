@@ -8,11 +8,11 @@ module DbMemoize
       end
 
       value         = nil
-      args_hash     = ::Digest::MD5.hexdigest(Marshal.dump(args))
+      args_hash     = Helpers.calculate_arguments_hash(args)
       cached_value  = find_memoized_value(method_name, args_hash)
 
       if cached_value
-        value = Marshal.load(cached_value.value)
+        value = Helpers.unmarshal(cached_value.value)
         Helpers.log(self, method_name, 'cache hit')
       else
         time = ::Benchmark.realtime do
@@ -44,7 +44,8 @@ module DbMemoize
     #                          autocomplete_info: "my autocomplete_info"
     #
     def memoize_values(values, *args)
-      args_hash = ::Digest::MD5.hexdigest(Marshal.dump(args))
+      # [TODO] - when creating many memoized values: should we even support arguments here?
+      args_hash = Helpers.calculate_arguments_hash(args)
 
       values.each do |name, value|
         create_memoized_value(name, args_hash, value)
@@ -53,16 +54,14 @@ module DbMemoize
 
     private
 
-    def create_memoized_value(method_name, args_hash, value)
-      # [TODO] - It would be nice to have an optimized, pg-based inserter
-      #          here, for up to 10 times speed. However, the memoized_values
-      #          array must then be properly reset.
-      memoized_values.create!(
-        entity_table_name: self.class.table_name,
-        method_name: method_name.to_s,
-        arguments_hash: args_hash,
-        value: Marshal.dump(value)
-      )
+    def create_memoized_value(method_name, arguments_hash, value)
+      ::DbMemoize::Value.metal.create! entity_table_name: self.class.table_name,
+                                       entity_id: id,
+                                       method_name: method_name.to_s,
+                                       arguments_hash: arguments_hash,
+                                       value: Helpers.marshal(value)
+
+      @association_cache.delete :memoized_values
     end
 
     def find_memoized_value(method_name, args_hash)
@@ -101,19 +100,18 @@ module DbMemoize
       end
 
       def memoize_values(records_or_ids, values, *args)
+        # [TODO] - when creating many memoized values: should we even support arguments here?
         transaction do
-          ids        = Helpers.find_ids(records_or_ids)
-          args_hash  = ::Digest::MD5.hexdigest(Marshal.dump(args))
+          ids            = Helpers.find_ids(records_or_ids)
+          arguments_hash = Helpers.calculate_arguments_hash(args)
 
           ids.each do |id|
-            values.each do |name, value|
-              DbMemoize::Value.create!(
-                entity_table_name: table_name,
-                entity_id: id,
-                method_name: name,
-                arguments_hash: args_hash,
-                value: Marshal.dump(value)
-              )
+            values.each do |method_name, value|
+              ::DbMemoize::Value.metal.create! entity_table_name: table_name,
+                                               entity_id: id,
+                                               method_name: method_name.to_s,
+                                               arguments_hash: arguments_hash,
+                                               value: Helpers.marshal(value)
             end
           end
         end
