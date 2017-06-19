@@ -17,7 +17,9 @@ end
 require "db_memoize"
 require './spec/support/bicycle'
 
-ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:"
+ActiveRecord::Base.establish_connection adapter: "postgresql", database: "db_memoize_test"
+
+DbMemoize.logger = Logger.new("log/test.log")
 
 load File.dirname(__FILE__) + '/schema.rb'
 
