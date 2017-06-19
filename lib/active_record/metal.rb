@@ -54,7 +54,7 @@ module ActiveRecord
 
       def check_database_identifiers!(*strings)
         strings.each do |s|
-          return if DATABASE_IDENTIFIER_REGEX =~ s.to_s
+          next if DATABASE_IDENTIFIER_REGEX =~ s.to_s
           raise ArgumentError, "Invalid database identifier: #{s.inspect}"
         end
       end
