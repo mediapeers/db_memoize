@@ -12,7 +12,21 @@ module DbMemoize
     end
 
     def log(model, method_name, msg)
-      DbMemoize.logger.send(DbMemoize.log_level, "DbMemoize <#{model.class.name} id: #{model.id}>##{method_name} - #{msg}")
+      DbMemoize.logger.send(DbMemoize.log_level) do
+        "DbMemoize <#{model.class.name}##{model.id}>##{method_name} - #{msg}"
+      end
+    end
+
+    def calculate_arguments_hash(arguments)
+      arguments.empty? ? nil : ::Digest::MD5.hexdigest(Marshal.dump(arguments))
+    end
+
+    def marshal(value)
+      Marshal.dump(value)
+    end
+
+    def unmarshal(value)
+      Marshal.load(value)
     end
   end
 end

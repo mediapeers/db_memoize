@@ -56,19 +56,38 @@ describe DbMemoize::Model do
       end
     end
 
-    context 'method with parameters' do
-      it 'creates a cached value for each parameter set' do
+    context 'method without parameters' do
+      it 'creates a cached value with arguments_hash being NULL' do
         expect {
-          instance.shift(1)
-          instance.shift(2)
-        }.to change { DbMemoize::Value.count }.by(2)
+          instance.gears_count
+        }.to change { DbMemoize::Value.where('arguments_hash IS NULL').count }.by(1)
       end
+    end
 
-      it 'returns correct cached values for given parameters' do
-        expect_any_instance_of(Bicycle).to receive(:shift_without_memoize).exactly(2).times.and_call_original
+    context 'method with parameters' do
+      before do
+        expect(DbMemoize::Value.count).to eq(0)
 
         instance.shift(1)
         instance.shift(2)
+      end
+
+      it 'creates a cached value for each parameter set' do
+        expect(DbMemoize::Value.count).to eq(2)
+      end
+
+      it 'uses the cached entries when looking up a value in the same instance' do
+        expect_any_instance_of(Bicycle).not_to receive(:shift_without_memoize)
+
+        expect(instance.shift(1)).to eq('1 shifted!')
+        expect(instance.shift(2)).to eq('2 shifted!')
+      end
+
+      it 'uses the cached entries when looking up a value in a new instance' do
+        expect_any_instance_of(Bicycle).not_to receive(:shift_without_memoize)
+
+        instance_id = instance.id
+        instance = Bicycle.find(instance_id)
 
         expect(instance.shift(1)).to eq('1 shifted!')
         expect(instance.shift(2)).to eq('2 shifted!')
@@ -124,13 +143,15 @@ describe DbMemoize::Model do
       it 'saves correct values' do
         klass.memoize_values([instance, instance2], gears_count: 7)
         expect(instance.reload.gears_count).to eq(7)
+        expect(instance2.reload.gears_count).to eq(7)
       end
 
-      it 'performs benchmark for 500 values to be created' do
+      it 'performs benchmark for a number of values to be created' do
+        cnt = 10_000
         benchmark = Benchmark.measure do
-          klass.memoize_values((1..500).to_a, gears_count: 7)
+          klass.memoize_values((1..cnt).to_a, gears_count: 7)
         end
-        puts "took #{benchmark.total.round(2)}s"
+        STDERR.puts "storing #{cnt} values took #{benchmark.total.round(3)}s"
       end
     end
 
