@@ -1,4 +1,4 @@
-module ActiveRecord
+module DbMemoize
   module Metal
     def self.included(base)
       base.extend ClassMethods
