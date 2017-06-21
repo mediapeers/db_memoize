@@ -103,6 +103,14 @@ class CreateMemoizedValues < ActiveRecord::Migration
 end
 ```
 
+### Testing
+
+Note that db_memoize needs Postgres. To set up the database needed to run tests, this is what you can do:
+
+    # sudo su postgresql
+    # createuser >>yourusername<<
+    # createdb -O >>yourusername<< db_memoize_test
+
 
 Have fun!
 
