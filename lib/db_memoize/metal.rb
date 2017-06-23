@@ -46,8 +46,25 @@ module DbMemoize
         @base_klass.columns_hash.key?(column_name)
       end
 
-      def insert_sql(field_names)
-        @query_cache[field_names] ||= _insert_sql(field_names)
+      class Inserter
+        def initialize(sql:, bytea_indices:)
+          @sql           = sql
+          @bytea_indices = bytea_indices
+        end
+
+        def exec(raw_connection:, values:)
+          @bytea_indices.each do |bytea_index|
+            value = values[bytea_index]
+            values[bytea_index] = PGconn.escape_bytea(value) if value
+          end
+
+          raw_connection.exec_params(@sql, values)
+        end
+      end
+
+      # returns an Inserter
+      def inserter(field_names)
+        @query_cache[field_names] ||= _inserter(field_names)
       end
 
       DATABASE_IDENTIFIER_REGEX = /\A\w+\z/
@@ -59,7 +76,7 @@ module DbMemoize
         end
       end
 
-      def _insert_sql(field_names)
+      def _inserter(field_names)
         check_database_identifiers! table_name, *field_names
 
         placeholders = 0.upto(field_names.count - 1).map { |idx| "$#{idx + 1}" }
@@ -77,15 +94,25 @@ module DbMemoize
         sql = "INSERT INTO #{table_name} (#{field_names.join(',')}) VALUES(#{placeholders.join(',')})"
         sql += " RETURNING #{primary_key.column}" if primary_key.column
         sql
+
+        columns_hash  = @base_klass.columns_hash
+        bytea_indices = []
+        field_names.each_with_index { |column, idx| 
+          next unless :binary == columns_hash.fetch(column.to_s).type
+          bytea_indices << idx
+        }
+
+        Inserter.new sql: sql, bytea_indices: bytea_indices
       end
 
       public
 
       def create!(record)
         keys, values = record.to_a.transpose
+        keys = keys.map(&:to_s)
+        types = keys.map { |key| @base_klass.columns_hash.fetch(key).type }
 
-        sql    = insert_sql(keys)
-        result = raw_connection.exec_params(sql, values)
+        result = inserter(keys).exec(raw_connection: raw_connection, values: values)
 
         # if we don't have an ID column then the sql does not return any value. The result
         # object would be this: #<PG::Result status=PGRES_COMMAND_OK ntuples=0 nfields=0 cmd_tuples=1>

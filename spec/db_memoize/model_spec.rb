@@ -18,11 +18,25 @@ describe DbMemoize::Model do
 
   describe '.db_memoized_methods' do
     it 'returns list of methods to be memoized' do
-      expect(Bicycle.db_memoized_methods).to eq([:gears_count, :shift, :facilities, :wise_saying])
+      expect(Bicycle.db_memoized_methods).to eq([:fuel_consumption, :gears_count, :shift, :facilities, :wise_saying])
     end
 
     it 'returns list of all methods to be memoized for subclass' do
-      expect(ElectricBicycle.db_memoized_methods).to eq([:gears_count, :shift, :facilities, :wise_saying, :max_speed])
+      expect(ElectricBicycle.db_memoized_methods).to eq([:fuel_consumption, :gears_count, :shift, :facilities, :wise_saying, :max_speed])
+    end
+  end
+
+  describe 'bugfixes' do
+    let(:instance) { create(:bicycle) }
+
+    context 'when storing a value which marshals contain a 0 byte' do
+      it 'works' do
+        expect {
+          fuel_consumption = instance.fuel_consumption
+          expect(fuel_consumption).to eq(0)
+        }.to change { DbMemoize::Value.count }.by(1)
+        expect(instance.fuel_consumption).to eq(0)
+      end
     end
   end
 
