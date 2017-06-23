@@ -71,7 +71,7 @@ module DbMemoize
 
       def check_database_identifiers!(*strings)
         strings.each do |s|
-          next if DATABASE_IDENTIFIER_REGEX =~ s.to_s
+          next if DATABASE_IDENTIFIER_REGEX =~ s
           raise ArgumentError, "Invalid database identifier: #{s.inspect}"
         end
       end
@@ -93,12 +93,11 @@ module DbMemoize
 
         sql = "INSERT INTO #{table_name} (#{field_names.join(',')}) VALUES(#{placeholders.join(',')})"
         sql += " RETURNING #{primary_key.column}" if primary_key.column
-        sql
 
         columns_hash  = @base_klass.columns_hash
         bytea_indices = []
-        field_names.each_with_index { |column, idx| 
-          next unless :binary == columns_hash.fetch(column.to_s).type
+        field_names.each_with_index { |column, idx|
+          next unless :binary == columns_hash.fetch(column).type
           bytea_indices << idx
         }
 
@@ -110,7 +109,6 @@ module DbMemoize
       def create!(record)
         keys, values = record.to_a.transpose
         keys = keys.map(&:to_s)
-        types = keys.map { |key| @base_klass.columns_hash.fetch(key).type }
 
         result = inserter(keys).exec(raw_connection: raw_connection, values: values)
 
