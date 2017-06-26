@@ -114,7 +114,7 @@ Note that db_memoize needs Postgres. To set up the database needed to run tests,
     # createdb -O >>yourusername<< db_memoize_test
 
 
-### Updating fropm 0.1 -> 0.2
+### Updating from 0.1 -> 0.2
 
 You need to run a migration, like the following: 
 
