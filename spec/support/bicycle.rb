@@ -1,6 +1,11 @@
 class Bicycle < ActiveRecord::Base
   include DbMemoize::Model
 
+  def fuel_consumption
+    0
+  end
+  db_memoize :fuel_consumption
+
   def gears_count
     5
   end
