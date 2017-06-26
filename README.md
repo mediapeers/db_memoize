@@ -127,16 +127,20 @@ class FixDbMemoizeTable < ActiveRecord::Migration
       ALTER COLUMN entity_id SET NOT NULL,
       ALTER COLUMN method_name SET NOT NULL,
       ALTER COLUMN created_at SET NOT NULL;
+    DROP INDEX IF EXISTS index_memoized_values_on_entity_table_name_and_entity_id;
+    DROP INDEX IF EXISTS index_memoized_values_on_entity_id_and_entity_table_name
+    SQL
 
-      DROP INDEX index_memoized_values_on_entity_table_name_and_entity_id;
+    add_index :memoized_values, [:entity_id, :entity_table_name]
 
-      CREATE INDEX memoized_attributes_idx ON memoized_values USING btree (((arguments_hash IS NULL)))
+    execute <<-SQL
+      CREATE INDEX IF NOT EXISTS memoized_attributes_idx ON memoized_values USING btree (((arguments_hash IS NULL)))
     SQL
   end
 
   def down
     execute <<-SQL
-      DROP INDEX memoized_attributes_idx
+    DROP INDEX memoized_attributes_idx ON memoized_values USING btree (((arguments_hash IS NULL)))
     SQL
   end
 end
