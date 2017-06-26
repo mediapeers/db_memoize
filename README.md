@@ -1,6 +1,8 @@
 # db_memoize
 library to cache (memoize) method return values in database
 
+**Note:** when updating from version 0.1 to 0.2 you need to run a migration on the existing table, see below.
+
 ## Usage in ActiveRecord models:
 
 ### Example Class:
@@ -111,6 +113,34 @@ Note that db_memoize needs Postgres. To set up the database needed to run tests,
     # createuser >>yourusername<<
     # createdb -O >>yourusername<< db_memoize_test
 
+
+### Updating fropm 0.1 -> 0.2
+
+You need to run a migration, like the following: 
+
+```
+class FixDbMemoizeTable < ActiveRecord::Migration
+  def up
+    execute <<-SQL
+    ALTER TABLE memoized_values
+      ALTER COLUMN entity_table_name SET NOT NULL,
+      ALTER COLUMN entity_id SET NOT NULL,
+      ALTER COLUMN method_name SET NOT NULL,
+      ALTER COLUMN created_at SET NOT NULL;
+
+      DROP INDEX index_memoized_values_on_entity_table_name_and_entity_id;
+
+      CREATE INDEX memoized_attributes_idx ON memoized_values USING btree (((arguments_hash IS NULL)))
+    SQL
+  end
+
+  def down
+    execute <<-SQL
+      DROP INDEX memoized_attributes_idx
+    SQL
+  end
+end
+```
 
 Have fun!
 
