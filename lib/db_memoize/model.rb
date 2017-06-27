@@ -27,8 +27,6 @@ module DbMemoize
 
     def unmemoize(method_name = :all)
       if method_name != :all
-        # FIXME: this works, but isn't immediately visible on the record.
-        # See also note in create_memoized_value.
         memoized_values.where(method_name: method_name).delete_all
       else
         memoized_values.clear
