@@ -208,6 +208,12 @@ describe DbMemoize::Model do
         expect { @rec1.unmemoize }
           .to change { DbMemoize::Value.count }.by(-3)
       end
+
+      it 'does not use the cached value after unmemoizing any longer' do
+        @rec1.unmemoize
+        expect_any_instance_of(Bicycle).to receive(:facilities_without_memoize)
+        @rec1.facilities
+      end
     end
 
     context 'specific method only' do
@@ -222,6 +228,12 @@ describe DbMemoize::Model do
         it 'wipes cached values for given record' do
           expect { @rec1.unmemoize(:facilities) }
             .to change { DbMemoize::Value.count }.by(-1)
+        end
+
+        it 'does not use the cached value after unmemoizing any longer' do
+          @rec1.unmemoize(:facilities)
+          expect_any_instance_of(Bicycle).to receive(:facilities_without_memoize)
+          @rec1.facilities
         end
       end
     end
