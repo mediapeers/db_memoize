@@ -26,11 +26,8 @@ module DbMemoize
     end
 
     def unmemoize(method_name = :all)
-      if method_name != :all
-        memoized_values.where(method_name: method_name).delete_all
-      else
-        memoized_values.clear
-      end
+      self.class.unmemoize id, method_name
+      # @association_cache.delete :memoized_values
     end
 
     #
@@ -94,7 +91,7 @@ module DbMemoize
         }
         conditions[:method_name] = method_name unless method_name == :all
 
-        DbMemoize::Value.where(conditions).delete_all
+        DbMemoize::Value.where(conditions).delete_all_ordered
       end
 
       def memoize_values(records_or_ids, values, *args)
@@ -128,8 +125,12 @@ module DbMemoize
       def create_memoized_values_association
         unless reflect_on_association(:memoized_values)
           conditions = { entity_table_name: table_name }
+          before_destroy do |rec|
+            rec.memoized_values.delete_all_ordered
+          end
           has_many :memoized_values, -> { where(conditions) },
                    dependent: :delete_all, class_name: 'DbMemoize::Value', foreign_key: :entity_id
+
         end
       end
     end
