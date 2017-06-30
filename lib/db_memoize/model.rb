@@ -124,9 +124,20 @@ module DbMemoize
       def create_memoized_values_association
         unless reflect_on_association(:memoized_values)
           conditions = { entity_table_name: table_name }
+
+          # By defining this before_destroy callback we make sure **we** delete all
+          # memoized values before Rails deletes those via `has_many dependent:
+          # This leads to has_many later on not finding any values to be deleted.
+          #
+          # It would be nice if there was a `dependent: :manual/:noop` option.
+          #
+          # **Note:** before_destroy must be called before memoized_values is
+          # set up, to make sure that these things happen in the right order.
+          #
           before_destroy do |rec|
             rec.memoized_values.delete_all_ordered
           end
+
           has_many :memoized_values, -> { where(conditions) },
                    dependent: :delete_all, class_name: 'DbMemoize::Value', foreign_key: :entity_id
 
