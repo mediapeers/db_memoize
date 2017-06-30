@@ -27,7 +27,6 @@ module DbMemoize
 
     def unmemoize(method_name = :all)
       self.class.unmemoize id, method_name
-      # @association_cache.delete :memoized_values
     end
 
     #
