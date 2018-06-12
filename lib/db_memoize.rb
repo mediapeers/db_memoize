@@ -4,7 +4,6 @@ require 'digest'
 require 'benchmark'
 
 require 'db_memoize/version'
-require 'db_memoize/metal'
 require 'db_memoize/value'
 require 'db_memoize/helpers'
 require 'db_memoize/model'

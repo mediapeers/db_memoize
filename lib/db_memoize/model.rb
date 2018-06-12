@@ -1,3 +1,5 @@
+require 'simple-sql'
+
 module DbMemoize
   module Model
     extend ActiveSupport::Concern
@@ -49,12 +51,7 @@ module DbMemoize
     private
 
     def create_memoized_value(method_name, arguments_hash, value)
-      ::DbMemoize::Value.metal.create! entity_table_name: self.class.table_name,
-                                       entity_id: id,
-                                       method_name: method_name.to_s,
-                                       arguments_hash: arguments_hash,
-                                       value: Helpers.marshal(value)
-
+      ::DbMemoize::Value.fast_create self.class.table_name, id, method_name, arguments_hash, value
       @association_cache.delete :memoized_values
     end
 
@@ -101,11 +98,7 @@ module DbMemoize
 
           ids.each do |id|
             values.each do |method_name, value|
-              ::DbMemoize::Value.metal.create! entity_table_name: table_name,
-                                               entity_id: id,
-                                               method_name: method_name.to_s,
-                                               arguments_hash: arguments_hash,
-                                               value: Helpers.marshal(value)
+              ::DbMemoize::Value.fast_create table_name, id, method_name, arguments_hash, value
             end
           end
         end

@@ -1,15 +1,17 @@
+require 'simple-sql'
+
 module DbMemoize
   class Value < ActiveRecord::Base
     self.table_name = 'memoized_values'
 
-    include DbMemoize::Metal
+    SQL = ::Simple::SQL
 
     def self.delete_all_ordered
       relation = self
       relation = all unless is_a?(ActiveRecord::Relation)
 
       sql = relation.select(:ctid).to_sql
-      connection.execute <<-SQL
+      SQL.ask <<-SQL
         DO $$DECLARE c record;
         BEGIN
           FOR c IN #{sql} ORDER BY ctid LOOP
@@ -17,6 +19,20 @@ module DbMemoize
           END LOOP;
         END$$;
       SQL
+    end
+
+    INSERT_SQL = <<~SQL.freeze
+      INSERT INTO #{table_name}
+        (entity_table_name, entity_id, method_name, arguments_hash, value,  created_at)
+        VALUES($1,$2,$3,$4,$5, NOW())
+      SQL
+
+    def self.fast_create(entity_table_name, id, method_name, arguments_hash, value)
+      SQL.ask INSERT_SQL, entity_table_name,
+              id,
+              method_name.to_s,
+              arguments_hash,
+              Helpers.marshal(value)
     end
   end
 end
