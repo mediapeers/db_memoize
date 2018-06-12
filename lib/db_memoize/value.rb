@@ -23,15 +23,14 @@ module DbMemoize
 
     INSERT_SQL = <<~SQL.freeze
       INSERT INTO #{table_name}
-        (entity_table_name, entity_id, method_name, arguments_hash, value,  created_at)
-        VALUES($1,$2,$3,$4,$5, NOW())
+        (entity_table_name, entity_id, method_name, value, created_at)
+        VALUES($1,$2,$3,$4,NOW())
       SQL
 
-    def self.fast_create(entity_table_name, id, method_name, arguments_hash, value)
+    def self.fast_create(entity_table_name, id, method_name, value)
       SQL.ask INSERT_SQL, entity_table_name,
               id,
               method_name.to_s,
-              arguments_hash,
               Helpers.marshal(value)
     end
   end

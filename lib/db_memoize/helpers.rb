@@ -17,10 +17,6 @@ module DbMemoize
       end
     end
 
-    def calculate_arguments_hash(arguments)
-      arguments.empty? ? nil : ::Digest::MD5.hexdigest(Marshal.dump(arguments))
-    end
-
     def marshal(value)
       Marshal.dump(value)
     end
