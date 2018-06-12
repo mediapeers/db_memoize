@@ -148,14 +148,11 @@ describe DbMemoize::Model do
       @rec1 = create(:bicycle)
       @rec2 = create(:bicycle)
       @rec3 = create(:bicycle)
-      
-      puts "creates"
 
       [@rec1, @rec2, @rec3].each do |r|
         r.gears_count
         r.facilities
       end
-
       expect(DbMemoize::Value.count).to eq(6)
     end
 

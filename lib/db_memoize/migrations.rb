@@ -14,6 +14,7 @@ module DbMemoize
         migration.add_index :memoized_values, [:entity_table_name, :entity_id]
         migrate_empty_arguments_support(migration)
         drop_arguments_support(migration)
+        add_discrete_value_columns(migration)
       end
 
       def migrate_empty_arguments_support(migration)
@@ -33,6 +34,16 @@ module DbMemoize
 
         migration.remove_index :memoized_values, [:entity_id, :entity_table_name]
         migration.add_index :memoized_values, [:entity_id, :entity_table_name, :method_name], unique: true, name: 'memoized_attributes_idx2'
+      end
+
+      def add_discrete_value_columns(m)
+        m.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_string varchar'
+        m.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_integer bigint'
+        m.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_float double precision'
+        m.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_time timestamp without time zone'
+        m.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_boolean boolean'
+        m.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_object jsonb'
+        m.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_nil boolean'
       end
     end
   end

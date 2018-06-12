@@ -13,7 +13,7 @@ module DbMemoize
       cached_value  = find_memoized_value(method_name)
 
       if cached_value
-        value = Helpers.unmarshal(cached_value.value)
+        value = cached_value.value
         Helpers.log(self, method_name, 'cache hit')
       else
         time = ::Benchmark.realtime do
@@ -49,8 +49,10 @@ module DbMemoize
     private
 
     def create_memoized_value(method_name, value)
-      ::DbMemoize::Value.fast_create self.class.table_name, id, method_name, value
-      @association_cache.delete :memoized_values
+      self.class.transaction do
+        ::DbMemoize::Value.fast_create self.class.table_name, id, method_name, value
+        @association_cache.delete :memoized_values
+      end
     end
 
     def find_memoized_value(method_name)

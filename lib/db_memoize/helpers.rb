@@ -16,13 +16,5 @@ module DbMemoize
         "DbMemoize <#{model.class.name}##{model.id}>##{method_name} - #{msg}"
       end
     end
-
-    def marshal(value)
-      Marshal.dump(value)
-    end
-
-    def unmarshal(value)
-      Marshal.load(value)
-    end
   end
 end
