@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'database_cleaner', '~> 1.5.3'
   spec.add_development_dependency 'factory_girl', '~> 4.7.0'
   spec.add_development_dependency 'gem-release'
-  spec.add_development_dependency 'pg', '>= 0.19.0'
+  spec.add_development_dependency 'pg', '~> 0.15'
   spec.add_development_dependency 'pry', '~> 0.10'
   spec.add_development_dependency 'pry-byebug', '~> 2.0'
   spec.add_development_dependency 'rake', '~> 10.5'
