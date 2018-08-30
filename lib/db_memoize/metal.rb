@@ -96,10 +96,10 @@ module DbMemoize
 
         columns_hash  = @base_klass.columns_hash
         bytea_indices = []
-        field_names.each_with_index { |column, idx|
-          next unless :binary == columns_hash.fetch(column).type
+        field_names.each_with_index do |column, idx|
+          next unless columns_hash.fetch(column).type == :binary
           bytea_indices << idx
-        }
+        end
 
         Inserter.new sql: sql, bytea_indices: bytea_indices
       end

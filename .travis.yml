@@ -1,9 +1,13 @@
-sudo: false
+sudo: required
+dist: trusty
+
 language: ruby
-rvm:
-  - 2.3.1
-before_install: gem install bundler -v 1.13.6
-script:
+cache:
+  bundler: true
+
+before_script:
   - bundle exec rake db:test:create
-  - bundle exec rspec
+
+script:
   - bundle exec rubocop
+  - bundle exec rspec

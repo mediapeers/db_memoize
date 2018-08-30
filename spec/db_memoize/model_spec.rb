@@ -22,7 +22,9 @@ describe DbMemoize::Model do
     end
 
     it 'returns list of all methods to be memoized for subclass' do
-      expect(ElectricBicycle.db_memoized_methods).to eq([:fuel_consumption, :gears_count, :shift, :facilities, :wise_saying, :max_speed])
+      expect(ElectricBicycle.db_memoized_methods).to eq(
+        [:fuel_consumption, :gears_count, :shift, :facilities, :wise_saying, :max_speed]
+      )
     end
   end
 
@@ -118,7 +120,7 @@ describe DbMemoize::Model do
       it 'should not create a cache record' do
         expect {
           instance.gears_count
-        }.not_to change { DbMemoize::Value.count }
+        }.not_to(change { DbMemoize::Value.count })
       end
 
       it 'should call original method' do
@@ -136,7 +138,7 @@ describe DbMemoize::Model do
       it 'should not create a cache record' do
         expect {
           instance.gears_count
-        }.not_to change { DbMemoize::Value.count }
+        }.not_to(change { DbMemoize::Value.count })
       end
 
       it 'should call original method (every time)' do

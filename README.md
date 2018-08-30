@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/mediapeers/db_memoize.svg?branch=master)](https://travis-ci.com/mediapeers/db_memoize)
+
 # db_memoize
 library to cache (memoize) method return values in database
 
