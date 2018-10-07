@@ -18,13 +18,11 @@ describe DbMemoize::Model do
 
   describe '.db_memoized_methods' do
     it 'returns list of methods to be memoized' do
-      expect(Bicycle.db_memoized_methods).to eq([:fuel_consumption, :gears_count, :shift, :facilities, :wise_saying])
+      expect(Bicycle.db_memoized_methods).to contain_exactly(:fuel_consumption, :gears_count, :facilities, :wise_saying)
     end
 
     it 'returns list of all methods to be memoized for subclass' do
-      expect(ElectricBicycle.db_memoized_methods).to eq(
-        [:fuel_consumption, :gears_count, :shift, :facilities, :wise_saying, :max_speed]
-      )
+      expect(ElectricBicycle.db_memoized_methods).to contain_exactly(:fuel_consumption, :gears_count, :facilities, :wise_saying, :max_speed)
     end
   end
 
@@ -72,41 +70,11 @@ describe DbMemoize::Model do
       end
     end
 
-    context 'method without parameters' do
-      it 'creates a cached value with arguments_hash being NULL' do
+    context 'when called with parameters' do
+      it 'raises an error' do
         expect {
-          instance.gears_count
-        }.to change { DbMemoize::Value.where('arguments_hash IS NULL').count }.by(1)
-      end
-    end
-
-    context 'method with parameters' do
-      before do
-        expect(DbMemoize::Value.count).to eq(0)
-
-        instance.shift(1)
-        instance.shift(2)
-      end
-
-      it 'creates a cached value for each parameter set' do
-        expect(DbMemoize::Value.count).to eq(2)
-      end
-
-      it 'uses the cached entries when looking up a value in the same instance' do
-        expect_any_instance_of(Bicycle).not_to receive(:shift_without_memoize)
-
-        expect(instance.shift(1)).to eq('1 shifted!')
-        expect(instance.shift(2)).to eq('2 shifted!')
-      end
-
-      it 'uses the cached entries when looking up a value in a new instance' do
-        expect_any_instance_of(Bicycle).not_to receive(:shift_without_memoize)
-
-        instance_id = instance.id
-        instance = Bicycle.find(instance_id)
-
-        expect(instance.shift(1)).to eq('1 shifted!')
-        expect(instance.shift(2)).to eq('2 shifted!')
+          instance.gears_count(23)
+        }.to raise_error(ArgumentError)
       end
     end
 
@@ -120,7 +88,7 @@ describe DbMemoize::Model do
       it 'should not create a cache record' do
         expect {
           instance.gears_count
-        }.not_to(change { DbMemoize::Value.count })
+        }.not_to change { DbMemoize::Value.count }
       end
 
       it 'should call original method' do
@@ -138,7 +106,7 @@ describe DbMemoize::Model do
       it 'should not create a cache record' do
         expect {
           instance.gears_count
-        }.not_to(change { DbMemoize::Value.count })
+        }.not_to change { DbMemoize::Value.count }
       end
 
       it 'should call original method (every time)' do
@@ -149,17 +117,13 @@ describe DbMemoize::Model do
     end
 
     describe '.memoize_values' do
-      let(:instance2) { create(:bicycle) }
-
-      it 'creates memoized values for every record' do
-        expect { klass.memoize_values([instance, instance2], gears_count: 7) }
-          .to change { DbMemoize::Value.count }.by(2)
-      end
-
       it 'saves correct values' do
+        instance2 = create(:bicycle)
+
         klass.memoize_values([instance, instance2], gears_count: 7)
-        expect(instance.reload.gears_count).to eq(7)
-        expect(instance2.reload.gears_count).to eq(7)
+
+        expect(klass.find(instance.id).gears_count).to eq(7)
+        expect(klass.find(instance2.id).gears_count).to eq(7)
       end
 
       it 'performs benchmark for a number of values to be created' do
@@ -184,31 +148,30 @@ describe DbMemoize::Model do
       @rec1 = create(:bicycle)
       @rec2 = create(:bicycle)
       @rec3 = create(:bicycle)
+
       [@rec1, @rec2, @rec3].each do |r|
         r.gears_count
-        r.shift(1)
         r.facilities
       end
-
-      expect(DbMemoize::Value.count).to eq(9)
+      expect(DbMemoize::Value.count).to eq(6)
     end
 
     describe '.unmemoize' do
       it 'wipes cached values for given records' do
         expect { Bicycle.unmemoize([@rec1, @rec2]) }
-          .to change { DbMemoize::Value.count }.by(-6)
+          .to change { DbMemoize::Value.count }.by(-4)
       end
 
       it 'wipes cached values for given ids' do
         expect { Bicycle.unmemoize([@rec1.id, @rec3.id]) }
-          .to change { DbMemoize::Value.count }.by(-6)
+          .to change { DbMemoize::Value.count }.by(-4)
       end
     end
 
     describe '#unmemoize' do
       it 'wipes cached values for given record' do
         expect { @rec1.unmemoize }
-          .to change { DbMemoize::Value.count }.by(-3)
+          .to change { DbMemoize::Value.count }.by(-2)
       end
 
       it 'does not use the cached value after unmemoizing any longer' do

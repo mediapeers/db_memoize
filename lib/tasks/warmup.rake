@@ -8,9 +8,9 @@ namespace :db_memoize do
 
     methods    = ENV['methods'] || ENV['METHODS']
     methods    = methods.split(',') if methods
-    methods ||= klass.db_memoized_methods.map(&:to_s)
+    methods    ||= klass.db_memoized_methods.map(&:to_s)
 
-    count = klass.count
+    count      = klass.count
 
     progressbar = ProgressBar.create(
       title: "db_memoize warmup run for #{klass_name}",

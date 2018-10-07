@@ -1,56 +1,60 @@
 AllCops:
+  TargetRubyVersion: 2.3
+  Include:
+    - Rakefile
+    - config.ru
+    - lib/**/*.rb
   Exclude:
+    - Rakefile
     - bin/*
+    - config.ru
+    - config/**/*
     - vendor/**/*
-    - gems/**/*
 
-Metrics/BlockLength:
-  Exclude:
-    - spec/**/*
-    - db_memoize.gemspec
-    - tasks/*.rake
+Style/FrozenStringLiteralComment:
+  Enabled: false
 
-Style/BlockDelimiters:
-  Exclude:
-    - spec/**/*
+Metrics/LineLength:
+  Max: 140
 
 Style/Documentation:
   Enabled: false
 
-Gemspec/RequiredRubyVersion:
+Style/BlockDelimiters:
+  Enabled: false
+
+Style/CollectionMethods:
+  PreferredMethods:
+    collect: 'map'
+    collect!: 'map!'
+    inject: 'reduce'
+    detect: 'find'
+    find_all: 'select'
+
+Style/TrivialAccessors:
+  Enabled: true
+  ExactNameMatch: true
+  AllowPredicates: true
+
+# TODO in the future try to reduce this section:
+Metrics/AbcSize:
+  Max: 36
+
+Metrics/ClassLength:
+  Max: 125
+
+Metrics/ModuleLength:
+  Max: 150
+
+Metrics/MethodLength:
+  Max: 30
+
+# "Prefer !expression.nil? over expression != nil." no way!
+Style/NonNilCheck:
   Enabled: false
 
 Style/SymbolArray:
   Enabled: false
 
-Style/GuardClause:
+Lint/MissingCopEnableDirective:
   Enabled: false
-
-Style/FrozenStringLiteralComment:
-  Enabled: false
-
-Style/PercentLiteralDelimiters:
-  Enabled: false
-
-Style/ModuleFunction:
-  Enabled: false
-
-Style/IfUnlessModifier:
-  Enabled: false
-
-# Try to keep those numbers low:
-
-Metrics/LineLength:
-  Max: 120
-
-Metrics/ClassLength:
-  Max: 120
-
-Metrics/ModuleLength:
-  Max: 120
-
-Metrics/MethodLength:
-  Max: 20
-
-Metrics/AbcSize:
-  Max: 30

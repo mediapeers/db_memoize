@@ -3,7 +3,7 @@ namespace :db_memoize do
   task clear: :environment do
     scope = DbMemoize::Value.all
 
-    if (klass_name = ENV['class'])
+    if klass_name = ENV['class']
       scope = scope.where(entity_table_name: klass_name.constantize.table_name)
     end
 

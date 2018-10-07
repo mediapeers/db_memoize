@@ -11,11 +11,6 @@ class Bicycle < ActiveRecord::Base
   end
   db_memoize :gears_count
 
-  def shift(gears)
-    "#{gears} shifted!"
-  end
-  db_memoize :shift
-
   def facilities
     {
       gears: 5,

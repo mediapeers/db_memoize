@@ -16,19 +16,5 @@ module DbMemoize
         "DbMemoize <#{model.class.name}##{model.id}>##{method_name} - #{msg}"
       end
     end
-
-    def calculate_arguments_hash(arguments)
-      arguments.empty? ? nil : ::Digest::MD5.hexdigest(Marshal.dump(arguments))
-    end
-
-    def marshal(value)
-      Marshal.dump(value)
-    end
-
-    # rubocop:disable Security/MarshalLoad
-    def unmarshal(value)
-      Marshal.load(value)
-    end
-    # rubocop:enable Security/MarshalLoad
   end
 end

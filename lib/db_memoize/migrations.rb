@@ -13,6 +13,8 @@ module DbMemoize
 
         migration.add_index :memoized_values, [:entity_table_name, :entity_id]
         migrate_empty_arguments_support(migration)
+        drop_arguments_support(migration)
+        add_discrete_value_columns(migration)
       end
 
       def migrate_empty_arguments_support(migration)
@@ -23,7 +25,25 @@ module DbMemoize
 
         # add an index to be useful to look up entries where arguments_hash is NULL.
         # (which is the case for plain attributes of an object)
-        migration.execute 'CREATE INDEX memoized_attributes_idx ON memoized_values((arguments_hash IS NULL))'
+        migration.execute 'CREATE INDEX IF NOT EXISTS memoized_attributes_idx ON memoized_values((arguments_hash IS NULL))'
+      end
+
+      def drop_arguments_support(migration)
+        migration.execute 'DROP INDEX IF EXISTS memoized_attributes_idx'
+        migration.execute 'ALTER TABLE memoized_values DROP COLUMN IF EXISTS arguments_hash'
+
+        migration.remove_index :memoized_values, [:entity_id, :entity_table_name]
+        migration.add_index :memoized_values, [:entity_id, :entity_table_name, :method_name], unique: true, name: 'memoized_attributes_idx2'
+      end
+
+      def add_discrete_value_columns(migration)
+        migration.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_string varchar'
+        migration.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_integer bigint'
+        migration.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_float double precision'
+        migration.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_time timestamp without time zone'
+        migration.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_boolean boolean'
+        migration.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_object jsonb'
+        migration.execute 'ALTER TABLE memoized_values ADD COLUMN IF NOT EXISTS val_nil boolean'
       end
     end
   end
