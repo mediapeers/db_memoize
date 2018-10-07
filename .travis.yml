@@ -1,8 +1,10 @@
 sudo: false
 language: ruby
 rvm:
-  - 2.3.1
-before_install: gem install bundler -v 1.13.6
+  - 2.5.1
+before_install: gem install bundler -v 1.16.4
+addons:
+  postgresql: "9.6"
 script:
   - bundle exec rake db:test:create
   - bundle exec rspec
