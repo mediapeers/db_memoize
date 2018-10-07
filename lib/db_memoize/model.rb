@@ -1,23 +1,24 @@
+require 'simple-sql'
+
 module DbMemoize
   module Model
     extend ActiveSupport::Concern
 
-    def memoized_value(method_name, args)
+    def memoized_value(method_name)
       if changed? || !persisted?
-        return send("#{method_name}_without_memoize", *args)
+        return send("#{method_name}_without_memoize")
       end
 
       value         = nil
-      args_hash     = Helpers.calculate_arguments_hash(args)
-      cached_value  = find_memoized_value(method_name, args_hash)
+      cached_value  = find_memoized_value(method_name)
 
       if cached_value
-        value = Helpers.unmarshal(cached_value.value)
+        value = cached_value.value
         Helpers.log(self, method_name, 'cache hit')
       else
         time = ::Benchmark.realtime do
-          value = send("#{method_name}_without_memoize", *args)
-          create_memoized_value(method_name, args_hash, value)
+          value = send("#{method_name}_without_memoize")
+          create_memoized_value(method_name, value)
         end
         Helpers.log(self, method_name, "cache miss. took #{Kernel.format '%.2f msecs', time * 1_000}")
       end
@@ -37,33 +38,28 @@ module DbMemoize
     #   product.memoize_values full_title: "my full title",
     #                          autocomplete_info: "my autocomplete_info"
     #
-    def memoize_values(values, *args)
-      # [TODO] - when creating many memoized values: should we even support arguments here?
-      args_hash = Helpers.calculate_arguments_hash(args)
-
+    # This sets the "full_title" and "autocomplete_info" values of the product.
+    #
+    def memoize_values(values)
       values.each do |name, value|
-        create_memoized_value(name, args_hash, value)
+        create_memoized_value(name, value)
       end
     end
 
     private
 
-    def create_memoized_value(method_name, arguments_hash, value)
-      ::DbMemoize::Value.metal.create! entity_table_name: self.class.table_name,
-                                       entity_id: id,
-                                       method_name: method_name.to_s,
-                                       arguments_hash: arguments_hash,
-                                       value: Helpers.marshal(value)
-
-      @association_cache.delete :memoized_values
+    def create_memoized_value(method_name, value)
+      self.class.transaction do
+        ::DbMemoize::Value.fast_create self.class.table_name, id, method_name, value
+        @association_cache.delete :memoized_values
+      end
     end
 
-    def find_memoized_value(method_name, args_hash)
+    def find_memoized_value(method_name)
       method_name = method_name.to_s
 
       memoized_values.detect do |rec|
-        rec.method_name == method_name &&
-          rec.arguments_hash == args_hash
+        rec.method_name == method_name
       end
     end
 
@@ -93,19 +89,13 @@ module DbMemoize
         DbMemoize::Value.where(conditions).delete_all_ordered
       end
 
-      def memoize_values(records_or_ids, values, *args)
-        # [TODO] - when creating many memoized values: should we even support arguments here?
+      def memoize_values(records_or_ids, values)
         transaction do
-          ids            = Helpers.find_ids(records_or_ids)
-          arguments_hash = Helpers.calculate_arguments_hash(args)
+          ids = Helpers.find_ids(records_or_ids)
 
           ids.each do |id|
             values.each do |method_name, value|
-              ::DbMemoize::Value.metal.create! entity_table_name: table_name,
-                                               entity_id: id,
-                                               method_name: method_name.to_s,
-                                               arguments_hash: arguments_hash,
-                                               value: Helpers.marshal(value)
+              ::DbMemoize::Value.fast_create table_name, id, method_name, value
             end
           end
         end
@@ -114,8 +104,8 @@ module DbMemoize
       private
 
       def create_memoized_alias_method(method_name)
-        define_method "#{method_name}_with_memoize" do |*args|
-          memoized_value(method_name, args)
+        define_method "#{method_name}_with_memoize" do ||
+          memoized_value(method_name)
         end
 
         alias_method_chain method_name, :memoize
