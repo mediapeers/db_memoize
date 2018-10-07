@@ -69,7 +69,7 @@ module DbMemoize
         INSERT INTO #{table_name}
           (entity_table_name, entity_id, method_name, #{dest_column}, created_at)
           VALUES($1,$2,$3,$4,NOW())
-        SQL
+      SQL
 
       SQL.ask sql, entity_table_name, id, method_name, value
     end

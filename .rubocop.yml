@@ -3,33 +3,19 @@ AllCops:
   Include:
     - Rakefile
     - config.ru
+    - lib/**/*.rb
   Exclude:
     - Rakefile
     - bin/*
     - config.ru
     - config/**/*
-    - db/**/*
-    - doc/**/*
-    - gems/**/*
-    - gems/*/vendor/**/*
-    - script/**/*
-    - sh/**/*
-    - spec/rails_helper.rb
-    - spec/spec_helper.rb
     - vendor/**/*
-    - spec/support/v20140601/requests_helper.rb
 
 Style/FrozenStringLiteralComment:
   Enabled: false
 
 Metrics/LineLength:
   Max: 140
-
-Rails:
-  Enabled: true
-
-Rails/HasAndBelongsToMany:
-  Enabled: false
 
 Style/Documentation:
   Enabled: false
@@ -65,4 +51,10 @@ Metrics/MethodLength:
 
 # "Prefer !expression.nil? over expression != nil." no way!
 Style/NonNilCheck:
+  Enabled: false
+
+Style/SymbolArray:
+  Enabled: false
+
+Lint/MissingCopEnableDirective:
   Enabled: false

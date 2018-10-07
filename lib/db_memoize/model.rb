@@ -5,9 +5,8 @@ module DbMemoize
     extend ActiveSupport::Concern
 
     def memoized_value(method_name)
-      if changed? || !persisted?
-        return send("#{method_name}_without_memoize")
-      end
+      memoizable = !changed? && persisted?
+      return send("#{method_name}_without_memoize") unless memoizable
 
       value         = nil
       cached_value  = find_memoized_value(method_name)
@@ -103,6 +102,7 @@ module DbMemoize
 
       private
 
+      # rubocop:disable Style/EmptyBlockParameter
       def create_memoized_alias_method(method_name)
         define_method "#{method_name}_with_memoize" do ||
           memoized_value(method_name)
@@ -111,6 +111,7 @@ module DbMemoize
         alias_method_chain method_name, :memoize
       end
 
+      # rubocop:disable Style/GuardClause
       def create_memoized_values_association
         unless reflect_on_association(:memoized_values)
           conditions = { entity_table_name: table_name }
