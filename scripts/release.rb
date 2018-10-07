@@ -80,7 +80,8 @@ sys! "gem build #{GEMSPEC}"
 sys! "git push origin #{$BASE_BRANCH}"
 sys! 'git push --tags --force'
 
-sys! "bundle exec fury push #{Dir.glob('*.gem').first} --as mediapeers"
+# sys! "bundle exec fury push #{Dir.glob('*.gem').first} --as mediapeers"
+sys! "gem push #{Dir.glob('*.gem').first}"
 
 sys! "mkdir -p pkg"
 sys! "mv *.gem pkg"
