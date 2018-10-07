@@ -25,10 +25,8 @@ module DbMemoize
       Marshal.dump(value)
     end
 
-    # rubocop:disable Security/MarshalLoad
     def unmarshal(value)
       Marshal.load(value)
     end
-    # rubocop:enable Security/MarshalLoad
   end
 end

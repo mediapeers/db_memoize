@@ -1,56 +1,68 @@
 AllCops:
+  TargetRubyVersion: 2.3
+  Include:
+    - Rakefile
+    - config.ru
   Exclude:
+    - Rakefile
     - bin/*
-    - vendor/**/*
+    - config.ru
+    - config/**/*
+    - db/**/*
+    - doc/**/*
     - gems/**/*
-
-Metrics/BlockLength:
-  Exclude:
-    - spec/**/*
-    - db_memoize.gemspec
-    - tasks/*.rake
-
-Style/BlockDelimiters:
-  Exclude:
-    - spec/**/*
-
-Style/Documentation:
-  Enabled: false
-
-Gemspec/RequiredRubyVersion:
-  Enabled: false
-
-Style/SymbolArray:
-  Enabled: false
-
-Style/GuardClause:
-  Enabled: false
+    - gems/*/vendor/**/*
+    - script/**/*
+    - sh/**/*
+    - spec/rails_helper.rb
+    - spec/spec_helper.rb
+    - vendor/**/*
+    - spec/support/v20140601/requests_helper.rb
 
 Style/FrozenStringLiteralComment:
   Enabled: false
 
-Style/PercentLiteralDelimiters:
-  Enabled: false
-
-Style/ModuleFunction:
-  Enabled: false
-
-Style/IfUnlessModifier:
-  Enabled: false
-
-# Try to keep those numbers low:
-
 Metrics/LineLength:
-  Max: 120
+  Max: 140
+
+Rails:
+  Enabled: true
+
+Rails/HasAndBelongsToMany:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/BlockDelimiters:
+  Enabled: false
+
+Style/CollectionMethods:
+  PreferredMethods:
+    collect: 'map'
+    collect!: 'map!'
+    inject: 'reduce'
+    detect: 'find'
+    find_all: 'select'
+
+Style/TrivialAccessors:
+  Enabled: true
+  ExactNameMatch: true
+  AllowPredicates: true
+
+# TODO in the future try to reduce this section:
+Metrics/AbcSize:
+  Max: 36
 
 Metrics/ClassLength:
-  Max: 120
+  Max: 125
 
 Metrics/ModuleLength:
-  Max: 120
+  Max: 150
 
 Metrics/MethodLength:
-  Max: 20
-
-Metrics/AbcSize:
   Max: 30
+
+# "Prefer !expression.nil? over expression != nil." no way!
+Style/NonNilCheck:
+  Enabled: false
