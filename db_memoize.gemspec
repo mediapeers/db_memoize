@@ -1,11 +1,10 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'db_memoize/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "db_memoize"
-  spec.version       = DbMemoize::VERSION
+  spec.version       = File.read("VERSION")
   spec.licenses      = ['MIT']
   spec.authors       = ["johannes-kostas goetzinger"]
   spec.email         = ["goetzinger@mediapeers.com"]
@@ -32,5 +31,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop', '~> 0.59.2'
   spec.add_development_dependency 'database_cleaner', '~> 1.5.3'
   spec.add_development_dependency 'factory_girl', '~> 4.7.0'
-  spec.add_development_dependency 'gem-release'
 end

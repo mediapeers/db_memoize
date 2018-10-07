@@ -1,3 +1,24 @@
 module DbMemoize
-  VERSION = '0.2.3'.freeze
+  module GemHelper
+    module_function
+
+    def version(name)
+      spec = Gem.loaded_specs[name]
+      version = spec.version.to_s
+      version += '+unreleased' if unreleased?(spec)
+      version
+    end
+
+    private
+
+    def unreleased?(spec)
+      return false unless defined?(Bundler::Source::Gemspec)
+      return true if spec.source.is_a?(::Bundler::Source::Gemspec)
+      return true if spec.source.is_a?(::Bundler::Source::Path)
+
+      false
+    end
+  end
+
+  VERSION = GemHelper.version 'db_memoize'
 end
