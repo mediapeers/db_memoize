@@ -8,8 +8,7 @@ module DbMemoize
       memoizable = !changed? && persisted?
       return send("#{method_name}_without_memoize") unless memoizable
 
-      value         = nil
-      cached_value  = find_memoized_value(method_name)
+      cached_value = find_memoized_value(method_name)
 
       if cached_value
         cached_value.value
@@ -123,6 +122,8 @@ module DbMemoize
           before_destroy do |rec|
             rec.memoized_values.delete_all_ordered
           end
+
+          after_update :unmemoize
 
           has_many :memoized_values, -> { where(conditions) },
                    dependent: :delete_all, class_name: 'DbMemoize::Value', foreign_key: :entity_id
