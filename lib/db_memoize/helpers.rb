@@ -10,11 +10,5 @@ module DbMemoize
 
       records_or_ids.first.is_a?(ActiveRecord::Base) ? records_or_ids.map(&:id) : records_or_ids
     end
-
-    def log(model, method_name, msg)
-      DbMemoize.logger.send(DbMemoize.log_level) do
-        "DbMemoize <#{model.class.name}##{model.id}>##{method_name} - #{msg}"
-      end
-    end
   end
 end
