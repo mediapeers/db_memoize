@@ -58,3 +58,6 @@ Style/SymbolArray:
 
 Lint/MissingCopEnableDirective:
   Enabled: false
+
+Style/ModuleFunction:
+  Enabled: false

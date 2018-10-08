@@ -2,7 +2,7 @@ module DbMemoize
   # The Helpers module contains some helper methods, mostly to not pollute
   # the namespace of memoized objects and classes.
   module Helpers
-    module_function
+    extend self
 
     def find_ids(records_or_ids)
       records_or_ids = Array(records_or_ids)

@@ -1,6 +1,6 @@
 module DbMemoize
   module GemHelper
-    module_function
+    extend self
 
     def version(name)
       spec = Gem.loaded_specs[name]
