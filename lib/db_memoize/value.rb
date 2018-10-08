@@ -57,6 +57,7 @@ module DbMemoize
                     when Float    then :val_float
                     when Time     then :val_time
                     when false    then :val_boolean
+                    when true     then :val_boolean
                     when nil      then :val_nil
                     when Hash     then :val_object
                     when Array    then :val_object
