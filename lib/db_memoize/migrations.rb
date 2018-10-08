@@ -4,10 +4,10 @@ module DbMemoize
       def create_tables(migration)
         migration.execute <<~SQL
           CREATE TABLE IF NOT EXISTS memoized_values (
-            entity_table_name varchar,
-            entity_id integer,
-            method_name varchar,
-            created_at timestamp without time zone
+            entity_table_name varchar NOT NULL,
+            entity_id integer NOT NULL,
+            method_name varchar NOT NULL,
+            created_at timestamp without time zone NOT NULL
           );
 
           -- entity_id/entity_table_name should have a better chance to be useful, since
