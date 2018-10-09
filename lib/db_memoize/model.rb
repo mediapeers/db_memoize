@@ -8,14 +8,14 @@ module DbMemoize
       memoizable = !changed? && persisted?
       return send("#{method_name}_without_memoize") unless memoizable
 
-      value         = nil
-      cached_value  = find_memoized_value(method_name)
+      memoized_value = find_memoized_value(method_name)
 
-      if cached_value
-        cached_value.value
+      if memoized_value
+        memoized_value.value
       else
         value = send("#{method_name}_without_memoize")
         create_memoized_value(method_name, value)
+        value
       end
     end
 
