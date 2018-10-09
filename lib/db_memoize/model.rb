@@ -8,21 +8,15 @@ module DbMemoize
       memoizable = !changed? && persisted?
       return send("#{method_name}_without_memoize") unless memoizable
 
-      value         = nil
-      cached_value  = find_memoized_value(method_name)
+      memoized_value = find_memoized_value(method_name)
 
-      if cached_value
-        value = cached_value.value
-        Helpers.log(self, method_name, 'cache hit')
+      if memoized_value
+        memoized_value.value
       else
-        time = ::Benchmark.realtime do
-          value = send("#{method_name}_without_memoize")
-          create_memoized_value(method_name, value)
-        end
-        Helpers.log(self, method_name, "cache miss. took #{Kernel.format '%.2f msecs', time * 1_000}")
+        value = send("#{method_name}_without_memoize")
+        create_memoized_value(method_name, value)
+        value
       end
-
-      value
     end
 
     def unmemoize(method_name = :all)
@@ -51,6 +45,7 @@ module DbMemoize
       self.class.transaction do
         ::DbMemoize::Value.fast_create self.class.table_name, id, method_name, value
         @association_cache.delete :memoized_values
+        value
       end
     end
 
