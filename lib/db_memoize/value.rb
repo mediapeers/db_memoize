@@ -5,7 +5,7 @@ require 'json'
 
 module DbMemoize
   class Value < ActiveRecord::Base
-    self.table_name = 'memoized_values'
+    self.table_name = 'db_memoize.memoized_values'
 
     SQL = ::Simple::SQL
 

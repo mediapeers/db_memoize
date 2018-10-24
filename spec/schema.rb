@@ -5,8 +5,8 @@ ActiveRecord::Schema.define do
 
   connection = ActiveRecord::Base.connection
 
-  if connection.tables.include?('memoized_values')
-    connection.execute 'DELETE FROM memoized_values'
+  if connection.tables.include?('db_memoize.memoized_values')
+    connection.execute 'DELETE FROM db_memoize.memoized_values'
   else
     DbMemoize::Migrations.create_tables(self)
   end
