@@ -81,17 +81,34 @@ module DbMemoize
       end
     end
 
+    ALL_COLUMNS = [
+      :val_string,
+      :val_integer,
+      :val_float,
+      :val_time,
+      :val_object,
+      :val_boolean,
+      :val_nil
+    ].freeze
+
     def self.simple_sql_create_value(column, entity_table_name:, entity_id:, method_name:, value:)
+      other_columns = ALL_COLUMNS - [column]
+      default_updates = other_columns.map { |c| "#{c}=NULL" }
+
       sql = <<~SQL.freeze
         INSERT INTO #{table_name}
           (entity_table_name, entity_id, method_name, #{column}, created_at)
           VALUES($1,$2,$3,$4,NOW())
+          ON CONFLICT (entity_id, entity_table_name, method_name)
+          DO UPDATE
+            SET #{default_updates.join(', ')}, #{column}=$4, created_at=NOW()
       SQL
 
       SQL.ask sql, entity_table_name, entity_id, method_name, value
     end
 
     def self.ar_create_value(column, entity_table_name:, entity_id:, method_name:, value:)
+      # [TODO] this code is not resolving conflicts on the unique index.
       data = {
         :entity_table_name => entity_table_name,
         :entity_id => entity_id,
