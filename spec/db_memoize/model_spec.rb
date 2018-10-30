@@ -17,26 +17,14 @@ describe DbMemoize::Model do
   end
 
   describe '.db_memoized_methods' do
+    EXPECTED_METHODS = [ :fuel_consumption, :gears_count, :facilities, :wise_saying, :generic_value ]
+
     it 'returns list of methods to be memoized' do
-      expect(Bicycle.db_memoized_methods).to contain_exactly(:fuel_consumption, :gears_count, :facilities, :wise_saying)
+      expect(Bicycle.db_memoized_methods).to contain_exactly(*EXPECTED_METHODS)
     end
 
     it 'returns list of all methods to be memoized for subclass' do
-      expect(ElectricBicycle.db_memoized_methods).to contain_exactly(:fuel_consumption, :gears_count, :facilities, :wise_saying, :max_speed)
-    end
-  end
-
-  describe 'bugfixes' do
-    let(:instance) { create(:bicycle) }
-
-    context 'when storing a value which marshals contain a 0 byte' do
-      it 'works' do
-        expect {
-          fuel_consumption = instance.fuel_consumption
-          expect(fuel_consumption).to eq(0)
-        }.to change { DbMemoize::Value.count }.by(1)
-        expect(instance.fuel_consumption).to eq(0)
-      end
+      expect(ElectricBicycle.db_memoized_methods).to contain_exactly(*EXPECTED_METHODS, :max_speed)
     end
   end
 
