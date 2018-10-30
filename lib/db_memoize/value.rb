@@ -44,6 +44,16 @@ module DbMemoize
       SQL
     end
 
+    ALL_COLUMNS = [
+      :val_string,
+      :val_integer,
+      :val_float,
+      :val_time,
+      :val_object,
+      :val_boolean,
+      :val_nil
+    ].freeze
+
     def self.fast_create(entity_table_name, entity_id, method_name, value)
       method_name = method_name.to_s
 
@@ -66,38 +76,17 @@ module DbMemoize
                  raise "Unsupported value of type #{value.class.name}: #{value.inspect}"
                end
 
-      value = JSON.generate(value) if column == :val_object
-
-      # it looks like Simple::SQL somehow drops subsecond resolutions from
-      # time objects. AR does not, though. So, for time values, we use the
-      # ActiveRecord method; for everything else we use Simple::SQL (for
-      # performance reasons: it is 10 times as fast.)
-      if column != :val_time
-        simple_sql_create_value column, entity_table_name: entity_table_name, entity_id: entity_id,
-                                        method_name: method_name, value: value
-      else
-        ar_create_value column, entity_table_name: entity_table_name, entity_id: entity_id,
-                                method_name: method_name, value: value
+      # some types need special encoding
+      case column
+      when :val_object  then value = _reformat_object(value)
+      when :val_time    then value = _reformat_time(value)
       end
-    end
 
-    ALL_COLUMNS = [
-      :val_string,
-      :val_integer,
-      :val_float,
-      :val_time,
-      :val_object,
-      :val_boolean,
-      :val_nil
-    ].freeze
-
-    def self.simple_sql_create_value(column, entity_table_name:, entity_id:, method_name:, value:)
       other_columns = ALL_COLUMNS - [column]
       default_updates = other_columns.map { |c| "#{c}=NULL" }
 
       sql = <<~SQL.freeze
-        INSERT INTO #{table_name}
-          (entity_table_name, entity_id, method_name, #{column}, created_at)
+        INSERT INTO #{table_name}(entity_table_name, entity_id, method_name, #{column}, created_at)
           VALUES($1,$2,$3,$4,NOW())
           ON CONFLICT (entity_id, entity_table_name, method_name)
           DO UPDATE
@@ -107,16 +96,20 @@ module DbMemoize
       SQL.ask sql, entity_table_name, entity_id, method_name, value
     end
 
-    def self.ar_create_value(column, entity_table_name:, entity_id:, method_name:, value:)
-      # [TODO] this code is not resolving conflicts on the unique index.
-      data = {
-        :entity_table_name => entity_table_name,
-        :entity_id => entity_id,
-        :method_name => method_name,
-        column => value
-      }
+    # Apparently the pg, and for that matter also simple-sql, drops subsecond
+    # resolution when passing in time objects. (Note that this seems not always
+    # to be the case, it probably depends on some encoder configuration within
+    # pg - which simple-sql is not touching, since this is a setting on a
+    # connection which might not be exclusive to simple-sql.)
+    #
+    # Instead we'll just pass along a string, postgresql will then convert it
+    # into a proper timestamp.
+    def self._reformat_time(t) # rubocop:disable Naming/UncommunicativeMethodParamName
+      format('%04d%02d-%02d %02d:%02d:%02d.%06d', t.year, t.mon, t.day, t.hour, t.min, t.sec, t.usec)
+    end
 
-      create!(data)
+    def self._reformat_object(value)
+      JSON.generate(value)
     end
   end
 end

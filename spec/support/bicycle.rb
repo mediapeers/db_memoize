@@ -11,6 +11,11 @@ class Bicycle < ActiveRecord::Base
   end
   db_memoize :gears_count
 
+  def generic_value
+    -1
+  end
+  db_memoize :generic_value
+
   def facilities
     {
       gears: 5,
