@@ -105,7 +105,7 @@ module DbMemoize
     # Instead we'll just pass along a string, postgresql will then convert it
     # into a proper timestamp.
     def self._reformat_time(t) # rubocop:disable Naming/UncommunicativeMethodParamName
-      format('%04d%02d-%02d %02d:%02d:%02d.%06d', t.year, t.mon, t.day, t.hour, t.min, t.sec, t.usec)
+      format('%04d-%02d-%02d %02d:%02d:%02d.%06d', t.year, t.mon, t.day, t.hour, t.min, t.sec, t.usec)
     end
 
     def self._reformat_object(value)
