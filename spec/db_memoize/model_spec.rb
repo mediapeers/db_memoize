@@ -114,10 +114,13 @@ describe DbMemoize::Model do
         expect(klass.find(instance2.id).gears_count).to eq(7)
       end
 
-      it 'performs benchmark for a number of values to be created' do
-        cnt = 10_000
+      it 'performs benchmark for a number of values to be 7' do
+        cnt = 1_000
+        cnt.times { klass.create! }
+
+        ids = klass.all.pluck(:id)
         benchmark = Benchmark.measure do
-          klass.memoize_values((1..cnt).to_a, gears_count: 7)
+          klass.memoize_values(ids, gears_count: 7)
         end
         STDERR.puts "storing #{cnt} values took #{benchmark.total.round(3)}s"
       end
