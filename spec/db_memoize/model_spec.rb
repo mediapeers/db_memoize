@@ -28,6 +28,34 @@ describe DbMemoize::Model do
     end
   end
 
+  context 'when having multiple memoized values' do
+    let(:instance) { create(:bicycle) }
+
+    def reloaded_instance
+      instance.class.find instance.id
+    end
+
+    before do
+      instance.memoize_values gears_count: 3
+      instance.memoize_values gears_count: 5
+
+      100.times do
+        instance.memoize_values gears_count: 5
+      end
+      instance.memoize_values gears_count: 7
+    end
+
+    it 'created multiple values' do
+      expect(DbMemoize::Value.where(entity_table_name: "bicycles", entity_id: instance.id).count).to eq(103)
+    end
+
+    it 'always returns the most recent memoized value' do
+      instance.memoize_values gears_count: 7
+      expect(reloaded_instance.gears_count).to eq(7)
+      expect(instance.reload.gears_count).to eq(7)
+    end
+  end
+
   context 'reading/writing' do
     let(:instance) { create(:bicycle) }
 
