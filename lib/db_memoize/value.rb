@@ -37,7 +37,7 @@ module DbMemoize
       SQL.ask <<-SQL
         DO $$DECLARE c record;
         BEGIN
-          FOR c IN #{sql} ORDER BY ctid LOOP
+          FOR c IN SELECT * FROM (#{sql}) sq ORDER BY ctid LOOP
             DELETE FROM #{DbMemoize::Value.table_name} WHERE ctid = c.ctid;
           END LOOP;
         END$$;
@@ -56,11 +56,6 @@ module DbMemoize
 
     def self.fast_create(entity_table_name, entity_id, method_name, value)
       method_name = method_name.to_s
-
-      # clear out old entry (if any). This makes sure that any existing value
-      # is cleared out properly.
-      SQL.ask "DELETE FROM #{table_name} WHERE(entity_table_name, entity_id, method_name) = ($1, $2, $3)",
-              entity_table_name, entity_id, method_name
 
       column = case value
                when String   then :val_string
@@ -82,15 +77,14 @@ module DbMemoize
       when :val_time    then value = _reformat_time(value)
       end
 
-      other_columns = ALL_COLUMNS - [column]
-      default_updates = other_columns.map { |c| "#{c}=NULL" }
-
+      # We initialize created_at with +statement_timestamp()+ since this
+      # reflects the current time when running the insert, resulting in
+      # increasing timestamps even within the same transaction.
+      #
+      # (This is only relevant for tests, though.)
       sql = <<~SQL.freeze
         INSERT INTO #{table_name}(entity_table_name, entity_id, method_name, #{column}, created_at)
-          VALUES($1,$2,$3,$4,NOW())
-          ON CONFLICT (entity_id, entity_table_name, method_name)
-          DO UPDATE
-            SET #{default_updates.join(', ')}, #{column}=$4, created_at=NOW()
+          VALUES($1,$2,$3,$4,statement_timestamp())
       SQL
 
       SQL.ask sql, entity_table_name, entity_id, method_name, value

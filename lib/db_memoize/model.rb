@@ -52,6 +52,14 @@ module DbMemoize
     def find_memoized_value(method_name)
       method_name = method_name.to_s
 
+      # In order to prevent database level deadlocks we don't manage any unique
+      # index on memoized values. This can result in duplicate matching memoized
+      # values.
+      #
+      # It is important to always return the freshest value. To make sure this
+      # happens the \a memoized_values association is ordered by its creation
+      # time (via "created_at DESC"), which lets us just return the first matching
+      # entry here.
       memoized_values.detect do |rec|
         rec.method_name == method_name
       end
@@ -124,7 +132,9 @@ module DbMemoize
             rec.memoized_values.delete_all_ordered
           end
 
-          has_many :memoized_values, -> { where(conditions) },
+          # memoized_values for this object. These values must be returned
+          # newest first, see the comment in \a find_memoized_value.
+          has_many :memoized_values, -> { where(conditions).order('created_at DESC') },
                    dependent: :delete_all, class_name: 'DbMemoize::Value', foreign_key: :entity_id
 
         end
