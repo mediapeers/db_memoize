@@ -22,7 +22,10 @@ module DbMemoize
 
           -- entity_id/entity_table_name should have a better chance to be useful, since
           -- there is more variance in entity_ids than there is in entity_table_names.
-          DROP INDEX IF EXISTS memoized_attributes_idx2;
+          DROP INDEX IF EXISTS db_memoize.memoized_attributes_idx2;
+
+          CREATE INDEX IF NOT EXISTS memoized_attributes_idx3
+            ON db_memoize.memoized_values(entity_id, entity_table_name);
         SQL
       end
     end
