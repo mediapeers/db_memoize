@@ -68,7 +68,8 @@ Instead of ActiveRecord instances it's sufficient to pass in the ids of the reco
 
 ### Gotchas
 
-The cached values themselves are active records (of type `DbMemoize::Value`) and are saved in the database.  They are also registered as an association, so you can access all of the cached values of an object like this:
+The cached values themselves are active records (of type `DbMemoize::Value`) and are saved in the database.
+They are also registered as an association, so you can access all of the cached values of an object like this:
 
     record.memoized_values
 
@@ -120,5 +121,6 @@ Note that db_memoize needs Postgres. To set up the database needed to run tests,
 
 ### Updating from earlier versions
 
-It is generally impossible to update from earlier versions and keep the cached data. DbMemoize should always be able to rerun migrations to update database structures to the latest version - feel free to add in as many migrations as you like :)
-
+It is generally impossible to update from earlier versions and keep the cached data.
+DbMemoize should always be able to rerun migrations to update database structures to the latest
+version - feel free to add in as many migrations as you like :)
