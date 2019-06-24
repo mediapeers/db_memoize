@@ -9,10 +9,7 @@ Gem::Specification.new do |spec|
   spec.description   = %q{library to cache (memoize) method return values in database}
   spec.homepage      = "https://github.com/mediapeers/db_memoize"
 
-  gem.files = `git ls-files`.split($OUTPUT_RECORD_SEPARATOR).select do |file|
-    file.match(%r{^(lib/|VERSION|LICENSE|README)})
-  end
-
+  spec.files         = `git ls-files`.split("\n").grep(%r{^(lib/|VERSION|LICENSE|README)})
   spec.require_paths = ['lib']
 
   spec.add_dependency 'simple-sql', '>= 0.4.20', '~> 0'
