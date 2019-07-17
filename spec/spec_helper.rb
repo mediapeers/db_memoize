@@ -3,7 +3,7 @@ $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 
 require 'active_record'
 require 'database_cleaner'
-require 'factory_girl'
+require 'factory_bot'
 
 unless ENV['SKIP_COVERAGE']
   require 'simplecov'
@@ -21,14 +21,14 @@ ActiveRecord::Base.establish_connection adapter: "postgresql", database: "db_mem
 load File.dirname(__FILE__) + '/schema.rb'
 
 RSpec.configure do |config|
-  config.include FactoryGirl::Syntax::Methods
+  config.include FactoryBot::Syntax::Methods
   config.run_all_when_everything_filtered = true
   config.filter_run focus: (ENV['CI'] != 'true')
   config.example_status_persistence_file_path = '.rspec.data'
 
   config.before(:suite) do
-    FactoryGirl.lint
-    FactoryGirl.find_definitions
+    FactoryBot.lint
+    FactoryBot.find_definitions
   end
 
   config.before(:suite) do
