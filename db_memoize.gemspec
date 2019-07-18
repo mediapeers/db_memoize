@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake', '~> 12.0'
   spec.add_development_dependency 'pg', '~> 0.20'
   spec.add_development_dependency 'rspec', '~> 3.8'
-  spec.add_development_dependency 'simplecov', '~> 0.16'
+  spec.add_development_dependency 'simplecov', '~> 0.17'
   spec.add_development_dependency 'rubocop', '~> 0.59.2'
   spec.add_development_dependency 'database_cleaner', '~> 1.5.3'
   spec.add_development_dependency 'factory_bot', '~> 4.10.0'
