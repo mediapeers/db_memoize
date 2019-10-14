@@ -107,13 +107,13 @@ module DbMemoize
 
       # rubocop:disable Style/EmptyBlockParameter
       def create_memoized_alias_method(method_name)
-        define_method "#{method_name}_with_memoize" do ||
-          memoized_value(method_name)
+        unless method_defined?("#{method_name}_without_memoize")
+          alias_method "#{method_name}_without_memoize", method_name
         end
 
-        # TODO: replace no longer existing alias_method_chain with s.th. else.
-        # like prepend, see https://www.justinweiss.com/articles/rails-5-module-number-prepend-and-the-end-of-alias-method-chain/
-        alias_method_chain method_name, :memoize
+        define_method method_name do ||
+          memoized_value(method_name)
+        end
       end
 
       # rubocop:disable Style/GuardClause
