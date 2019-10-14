@@ -61,3 +61,6 @@ Lint/MissingCopEnableDirective:
 
 Style/ModuleFunction:
   Enabled: false
+
+Style/IfUnlessModifier:
+  Enabled: false
